@@ -5,7 +5,9 @@ var crypto = require('crypto');
 var config = require('./config');
 var log = require('./log');
 
-var Parser = function(options) {
+var Parser = function() {}
+
+Parser.prototype.init = function(options) {
     this._targets = options.targets;
     this._blacklist = options.blacklist;
     this._siteUri = new URI(options.url);

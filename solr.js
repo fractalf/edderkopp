@@ -25,7 +25,7 @@ Solr.prototype.add = function(doc) {
         } else {
             self.client.commit();
             log.verbose('[Solr] Document added');
-            self.emit('add', response);
+            self.emit('added', response);
         }
     });
 }

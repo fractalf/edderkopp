@@ -1,7 +1,7 @@
 var elasticsearch = require('elasticsearch');
 var log = require('./log');
 
-var Elasticsearch = function() {
+var Elasticsearch = function(host, port) {
     host = host || '192.168.1.104';
     port = port || '9200';
     this.client = new elasticsearch.Client({
@@ -24,7 +24,7 @@ Elasticsearch.prototype.add = function(index, type, id, doc) {
             log.error('[Elasticsearch] ' + error);
         } else {
             log.verbose('[Elasticsearch] Document added');
-            self.emit('add', response);
+            self.emit('added', response);
         }
     });
 }

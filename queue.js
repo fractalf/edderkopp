@@ -10,7 +10,7 @@ var Queue = function(options) {
     // Handle options and defaults
     options = options || {};
     this._maxLevel = options.maxLevel || 0;
-    this._maxItems = options.maxItems || 10
+    this._maxItems = options.maxItems || 0
     
     // Internal
     this._currentLevel = 0;
