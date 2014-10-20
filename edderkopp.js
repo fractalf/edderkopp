@@ -48,7 +48,7 @@ Edderkopp.prototype.getPage = function(site, url) {
             var data = self.parser.getData();
             console.log(data);
         } else {
-            log.warning('[Edderkopp] Url is not listet as target for site');
+            log.verbose('[Edderkopp] Url is not listet as target for site');
         }
     });
 

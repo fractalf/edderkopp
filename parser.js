@@ -208,7 +208,7 @@ function parsePrice(price) {
     
     // Log if our algorithm doesn't work
     if (!/^\d+$/.test(result)) {
-        log.warning('[Parser] parcePrice failed on: "' + price + '"')
+        log.warn('[Parser] parcePrice failed on: "' + price + '"')
     }
     return parseInt(result, 10);
 }

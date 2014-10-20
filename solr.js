@@ -3,7 +3,7 @@ var log = require('./log');
 
 var Solr = function(host, port, index) {
     if (index === undefined) {
-        log.warning('[Solr] No index provided');
+        log.warn('[Solr] No index provided');
         return;
     }
     host = host || '192.168.1.104';
