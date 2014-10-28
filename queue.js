@@ -9,8 +9,8 @@ var Queue = function(options) {
     
     // Handle options and defaults
     options = options || {};
-    this._maxLevel = options.maxLevel || 0;
-    this._maxItems = options.maxItems || 0
+    this._maxLevel = options.maxLevel || false;
+    this._maxItems = options.maxItems || false
     
     // Internal
     this._currentLevel = 0;
@@ -19,7 +19,7 @@ var Queue = function(options) {
 
 Queue.prototype.add = function(items) {
     log.verbose('[Queue] Received ' + items.length + ' items');
-    if (this._currentLevel < this._maxLevel) {
+    if (!this._maxLevel || this._currentLevel < this._maxLevel) {
         
         // Support items not in array
         if (!Array.isArray(items)) {
@@ -30,7 +30,7 @@ Queue.prototype.add = function(items) {
         var n = items.length;
         var added = 0;
         for (var i = 0; i < n; i++) {
-            if (this._currentItem < this._maxItems) {
+            if (!this._maxItems || this._currentItem < this._maxItems) {
                 this._stack.add.push(items[i]);
                 this._currentItem++;
                 added++;
@@ -52,7 +52,7 @@ Queue.prototype.get = function() {
     if (this._stack.get.length) {
         return this._stack.get.pop();
     } else {
-        if (this._currentLevel < this._maxLevel) {
+        if (!this._maxLevel || this._currentLevel < this._maxLevel) {
             // Set next level
             this._currentLevel++;
             log.verbose('[Queue] Starting level ' + this._currentLevel);

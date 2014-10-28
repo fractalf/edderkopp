@@ -3,15 +3,15 @@ winston.emitErrs = true;
 
 var log = new winston.Logger({
     transports: [
-        //new winston.transports.File({
-        //    level: 'info',
-        //    filename: './logs/all-logs.log',
-        //    handleExceptions: true,
-        //    json: true,
-        //    maxsize: 5242880, //5MB
-        //    maxFiles: 5,
-        //    colorize: false
-        //}),
+        new winston.transports.File({
+            level: 'warn',
+            filename: 'going.log',
+            handleExceptions: false,
+            json: true,
+            maxsize: 5242880, //5MB
+            maxFiles: 5,
+            colorize: false
+        }),
         new winston.transports.Console({
             level: 'info',
             handleExceptions: false,
@@ -23,13 +23,6 @@ var log = new winston.Logger({
 });
 
 module.exports = log;
-//module.exports.stream = {
-//    write: function(message, encoding){
-//        logger.info(message);
-//    }
-//};
-
-
 
 //npmConfig.levels = {
 //    silly: 0,

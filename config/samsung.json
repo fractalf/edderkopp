@@ -3,8 +3,7 @@
     "url": "http://samsung.com/no",
     "targets": [
         {
-            "type": "product",
-            "pageId": {
+            "id": {
                 "elem": "#content .product-info-wrap",
                 "path": false
             },

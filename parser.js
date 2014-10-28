@@ -1,6 +1,7 @@
 var cheerio = require('cheerio');
 var $;
 var URI = require('URIjs');
+var he = require('he');
 var crypto = require('crypto');
 var config = require('./config');
 var log = require('./log');
@@ -12,6 +13,7 @@ Parser.prototype.init = function(options) {
     this._blacklist = options.blacklist;
     this._siteUri = new URI(options.url);
     this._cache = {};
+    this._cacheFile = {};
 }
 
 Parser.prototype.load = function(args) {
@@ -24,7 +26,7 @@ Parser.prototype.isTarget = function() {
         return false;
     }
     for (var i = 0; i < this._targets.length; i++) {
-        if ($(this._targets[i].pageId.elem).length > 0) {
+        if ($(this._targets[i].id.elem).length > 0) {
             log.verbose('[Parser] Found target');
             return true;
         }
@@ -40,6 +42,7 @@ Parser.prototype.getLinks = function() {
     var blacklist = this._blacklist;
     var siteUri = this._siteUri;
     var cache = this._cache;
+    var cacheFile = this._cacheFile;
     
     if (blacklist.classes !== undefined) {
         selector += ':not(' + blacklist.classes.join(',') + ')';
@@ -102,6 +105,18 @@ Parser.prototype.getLinks = function() {
         } else {
             log.silly('[Parser] Already fetched');
             return;
+        }
+        
+        // Skip previously downloaded filenames
+        if (uri.filename()) {
+            var md5file = crypto.createHash('md5').update(uri.filename()).digest('hex');
+            if (cacheFile[md5file] === undefined) {
+                cacheFile[md5file] = [ url ];
+            } else {
+                cacheFile[md5file].push(url);
+                log.warn(cacheFile[md5file]);
+                return;
+            }
         }
         
         links.push(url);
@@ -170,20 +185,28 @@ function pageParser($container, targets, data, depth) {
                         value = matches[target.regex.matchIndex];
                         log.debug(logPrefix + 'Regex: ' + target.regex.pattern + ', Match: ' + value);
                     } else {
-                        value = $(this).text().trim();
+                        value = target.tags ? $(this).html().trim() : $(this).text().trim();
                     }
                 }
                 if (target.functions) {
                     for (var i = 0; i < target.functions.length; i++) {
+                        log.debug(logPrefix + 'Run function: ' + target.functions[i] + '(' + value + ')');
                         switch (target.functions[i]) {
                             case 'parsePrice':
-                                log.debug(logPrefix + 'Run function: ' + target.functions[i] + '(' + value + ')');
                                 value = parsePrice(value);
+                                break;
+                            case 'toInt':
+                                value = toInt(value);
+                                break;
+                            case 'htmlEntitiesDecode':
+                                value = he.decode(value);
                                 break;
                         }
                     }
                 }
-                items.push(value);
+                if (value) {
+                    items.push(value);
+                }
             });
             
             if (items.length > 1) {
@@ -192,7 +215,7 @@ function pageParser($container, targets, data, depth) {
                     items = items.join(target.glue);
                 }
                 data[key] = items;
-            } else {
+            } else if (items.length) {
                 data[key] = items.pop();
             }
         }
@@ -206,11 +229,26 @@ function parsePrice(price) {
     result = result.replace(/,\d{2}$|,$/g, ""); // strip ending ",00" and ","
     result = result.replace(/,|\./g, ""); // strip "," and "."
     
+    result = toInt(result);
+    
     // Log if our algorithm doesn't work
-    if (!/^\d+$/.test(result)) {
+    if (!result) {
         log.warn('[Parser] parcePrice failed on: "' + price + '"')
     }
-    return parseInt(result, 10);
+    
+    return result;
 }
 
+function toInt(value) {
+    return /^\d+$/.test(value) ? parseInt(value, 10) : false;
+}
+
+// https://github.com/kvz/phpjs/blob/master/functions/url/rawurldecode.js
+function rawurldecode(str) {
+    return decodeURIComponent((str + '')
+        .replace(/%(?![\da-f]{2})/gi, function () {
+            return '%25';
+        })
+    );
+}
 module.exports = Parser;
