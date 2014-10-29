@@ -1,34 +1,23 @@
 var fs = require('fs');
 var log = require('./log');
 
+var configDir = __dirname + '/config/';
+
 var Config = function() {}
 
-Config.prototype.loadSite = function(site) {
-    
-    var file = __dirname + '/config/' + site + '.json';
+Config.prototype.load = function(type, target) {
+    var file = configDir + type + '/' + site + '.json';
     if (fs.existsSync(file)) {
-        this.site = JSON.parse(fs.readFileSync(file).toString());
-        //for (var prop in this._config) {
-            //this[prop] = this._config[prop];
-        //}
+        if (this[type] === undefined) {
+            this[type] = {};
+        }
+        this[type][target] = JSON.parse(fs.readFileSync(file).toString());
         return true;
     } else {
-        log.error('File does not exist: ' + file);
+        log.error('[Config] File does not exist: ' + file);
         return false;
     }
-    
-}
 
-Config.prototype.loadAuth = function(target) {
-    var file = __dirname + '/config/auth/' + target + '.json';
-    if (fs.existsSync(file)) {
-        this[target] = JSON.parse(fs.readFileSync(file).toString());
-        return true;
-    } else {
-        log.error('File does not exist: ' + file);
-        return false;
-    }
-    
 }
 
 module.exports = Config;
