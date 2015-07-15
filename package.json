@@ -1,0 +1,28 @@
+{
+  "name": "edderkopp",
+  "version": "0.1.0",
+  "description": "Crawl webpages and get data according to config file",
+  "main": "edderkopp.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fractalf/edderkopp.git"
+  },
+  "author": "Alf Marius Foss Olsen",
+  "license": "GNU GENERAL PUBLIC LICENSE",
+  "bugs": {
+    "url": "https://github.com/fractalf/edderkopp/issues"
+  },
+  "homepage": "https://github.com/fractalf/edderkopp#readme",
+  "dependencies": {
+    "URIjs": "^1.15.2",
+    "cheerio": "^0.19.0",
+    "elasticsearch": "^5.0.0",
+    "he": "^0.5.0",
+    "request": "^2.58.0",
+    "solr-client": "^0.5.0",
+    "winston": "^1.0.1"
+  }
+}
