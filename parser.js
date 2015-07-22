@@ -17,22 +17,22 @@ Parser.prototype.init = function(options) {
 }
 
 Parser.prototype.load = function(args) {
-    log.verbose('[Parser] Load html from: ' + args.url);
+    log.verbose('[Parser] Load (feed cheerio with html)');
     $ = cheerio.load(args.html);
 }
 
-Parser.prototype.isTarget = function() {
-    if (!this._targets) {
-        return false;
-    }
-    for (var i = 0; i < this._targets.length; i++) {
-        if ($(this._targets[i].id.elem).length > 0) {
-            log.verbose('[Parser] Found target');
-            return true;
-        }
-    }
-    return false;
-}
+//Parser.prototype.isTarget = function() {
+//    if (!this._targets) {
+//        return false;
+//    }
+//    for (var i = 0; i < this._targets.length; i++) {
+//        if ($(this._targets[i].id.elem).length > 0) {
+//            log.verbose('[Parser] Found target');
+//            return true;
+//        }
+//    }
+//    return false;
+//}
 
 Parser.prototype.getLinks = function() {
     log.verbose('[Parser] Get links');
@@ -133,11 +133,12 @@ Parser.prototype.getLinks = function() {
 }
 
 Parser.prototype.getData = function() {
-    log.verbose('[Parser] Get data');
+    log.verbose('[Parser] Get data (parsing html)');
     var data = {};
-    for (var i = 0; i < this._targets.length; i++) {
-        pageParser(null, this._targets[i].fetch, data);
-    }
+    pageParser(null, this._targets, data);
+    //for (var i = 0; i < this._targets.length; i++) {
+    //    pageParser(null, this._targets[i].fetch, data);
+    //}
     return data;
 }
 
@@ -146,14 +147,18 @@ Parser.prototype.getData = function() {
 
 function pageParser($container, targets, data, depth) {
     depth = depth || 1;
-    var logPrefix = '[Parser] ' + Array(depth).join("   ") + '> ';
+    var logPrefix = '[Parser] ' + Array(depth).join("    ") + '';
     log.debug(logPrefix + 'Depth: ' + depth);
     for (var i = 0; i < targets.length; i++) {
         var target = targets[i];
         var $elem = $container !== null ? $(target.elem, $container) : $(target.elem);
+        if ($elem.length === 0) {
+            log.error(logPrefix + 'Couldn\'t find ' + target.elem + ' (' + target.type + ')');
+            continue;
+        }
+        log.debug(logPrefix + 'Found ' + target.elem + ' (' + target.type + ')');
         var key = target.name;
         if (target.type == 'container') {
-            log.debug(logPrefix + 'Container element: ' + target.elem);
             if (!key) {
                 pageParser($elem, target.children, data, depth + 1);
             } else if ($elem.length > 1) {
@@ -172,12 +177,11 @@ function pageParser($container, targets, data, depth) {
                 pageParser($elem, target.children, data[key], depth + 1);
             }
         } else if (target.type == 'data') {
-            log.debug(logPrefix + 'Data element: ' + target.elem);
-            log.debug(logPrefix + 'Name: ' + key);
             var items = [];
             $elem.each(function() {
                 var value;
-                if (target.hasOwnProperty('attr')) {
+                if (target.attr) {
+                //if (target.hasOwnProperty('attr')) {
                     value = $(this).attr(target.attr);
                 } else {
                     if (target.regex) {
@@ -243,12 +247,13 @@ function toInt(value) {
     return /^\d+$/.test(value) ? parseInt(value, 10) : false;
 }
 
-// https://github.com/kvz/phpjs/blob/master/functions/url/rawurldecode.js
-function rawurldecode(str) {
-    return decodeURIComponent((str + '')
-        .replace(/%(?![\da-f]{2})/gi, function () {
-            return '%25';
-        })
-    );
-}
+//// https://github.com/kvz/phpjs/blob/master/functions/url/rawurldecode.js
+//function rawurldecode(str) {
+//    return decodeURIComponent((str + '')
+//        .replace(/%(?![\da-f]{2})/gi, function () {
+//            return '%25';
+//        })
+//    );
+//}
+
 module.exports = Parser;

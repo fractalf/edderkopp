@@ -1,0 +1,5 @@
+{
+    "sites": "config/sites",
+    "solr": "config/solr",
+    "elastic": "config/elastic"
+}

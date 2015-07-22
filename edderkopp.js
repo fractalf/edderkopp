@@ -40,45 +40,15 @@ Edderkopp.prototype.checkIndex = function() {
 
 Edderkopp.prototype.initSite = function(site) {
     log.verbose('[Edderkopp] Init site: ' + site);
-    var self = this;
     
-    if (this.config.loadSite(site)) {
-        this.parser.init({
-            url: this.config.site.url,
-            targets: this.config.site.targets,
-            blacklist: this.config.site.blacklist || {}
-        });
-        return true;
-    } else {
-        return false;
-    }
-}
-
-Edderkopp.prototype.getPage = function(site, url) {
-    log.verbose('[Edderkopp] Get page: ' + url);
+    if (!this.config.loadSite(site)) { return false; }
     
-    if (!this.initSite(site)) {
-        return;
-    }
-    //this.initIndex('elasticsearch');
-    
-    var self = this;
-    this.download.get(url);
-    this.download.on('finished', function(response) {
-        self.parser.load(response);
-        if (self.parser.isTarget()) {
-            var data = self.parser.getData();
-            data.url = response.url;
-            if (self.elasticsearch) {
-                var id = 'shop_id' + self.config.site.id + 'product_id' + data.shop_product_id;
-                self.elasticsearch.create(data, 'shops', 'product', id);
-            } else {
-                console.log(data);
-            }
-        } else {
-            log.verbose('[Edderkopp] Url is not listet as target for site');
-        }
+    this.parser.init({
+        url: this.config.sites[site].url,
+        targets: this.config.sites[site].targets,
+        blacklist: this.config.sites[site].blacklist || {}
     });
+    return true;
 }
 
 Edderkopp.prototype.getSite = function(site) {
