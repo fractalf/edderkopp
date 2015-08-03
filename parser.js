@@ -3,9 +3,9 @@ var $;
 var URI = require('URIjs');
 var he = require('he');
 var crypto = require('crypto');
-var config = require('./config');
 var log = require('./log');
 
+//var _config;
 var Parser = function() {}
 
 Parser.prototype.init = function(options) {
@@ -16,23 +16,11 @@ Parser.prototype.init = function(options) {
     this._cacheFile = {};
 }
 
-Parser.prototype.load = function(args) {
-    log.verbose('[Parser] Load (feed cheerio with html)');
-    $ = cheerio.load(args.html);
+Parser.prototype.load = function(html, config, url) {
+    log.verbose('[Parser] Load html and inject config');
+    $ = cheerio.load(html);
+    _config = config;
 }
-
-//Parser.prototype.isTarget = function() {
-//    if (!this._targets) {
-//        return false;
-//    }
-//    for (var i = 0; i < this._targets.length; i++) {
-//        if ($(this._targets[i].id.elem).length > 0) {
-//            log.verbose('[Parser] Found target');
-//            return true;
-//        }
-//    }
-//    return false;
-//}
 
 Parser.prototype.getLinks = function() {
     log.verbose('[Parser] Get links');
@@ -132,37 +120,44 @@ Parser.prototype.getLinks = function() {
     
 }
 
-Parser.prototype.getData = function() {
-    log.verbose('[Parser] Get data (parsing html)');
-    var data = {};
-    pageParser(null, this._targets, data);
-    //for (var i = 0; i < this._targets.length; i++) {
-    //    pageParser(null, this._targets[i].fetch, data);
-    //}
-    return data;
+Parser.prototype.getData = function(obj) {
+    log.verbose('[Parser] Parse content of ' + obj.url);
+    $ = cheerio.load(obj.html);
+    obj.web = {};
+    pageParser(null, obj.config.targets, obj.web);
+    log.debug(obj.web);
+    return obj;
 }
-
-
-// Private module functions
 
 function pageParser($container, targets, data, depth) {
     depth = depth || 1;
     var logPrefix = '[Parser] ' + Array(depth).join("    ") + '';
-    log.debug(logPrefix + 'Depth: ' + depth);
+    log.silly(logPrefix + 'Depth: ' + depth);
     for (var i = 0; i < targets.length; i++) {
         var target = targets[i];
         var $elem = $container !== null ? $(target.elem, $container) : $(target.elem);
+        
+        var msg = target.type + ': ' + target.elem + (target.name ? ' (' + target.name + ')' : '');
         if ($elem.length === 0) {
-            log.error(logPrefix + 'Couldn\'t find ' + target.elem + ' (' + target.type + ')');
+            if (target.miss) {
+                var $missing = $container !== null ? $(target.miss, $container) : $(target.miss);
+                if ($missing.length) {
+                    continue;
+                }
+            } else if (target.optional) {
+                continue;
+            }
+            log.warn('[Parser] Couldn\'t find ' + msg);
             continue;
         }
-        log.debug(logPrefix + 'Found ' + target.elem + ' (' + target.type + ')');
+        
+        log.silly(logPrefix + 'Found ' + msg);
         var key = target.name;
         if (target.type == 'container') {
             if (!key) {
                 pageParser($elem, target.children, data, depth + 1);
             } else if ($elem.length > 1) {
-                log.debug(logPrefix + 'Name: ' + key);
+                log.silly(logPrefix + 'Name: ' + key);
                 $elem.each(function() {
                     if (data[key] === undefined) {
                         data[key] = [];
@@ -173,87 +168,99 @@ function pageParser($container, targets, data, depth) {
                 });
             } else {
                 data[key] = {};
-                log.debug(logPrefix + 'Name: ' + key);
+                log.silly(logPrefix + 'Name: ' + key);
                 pageParser($elem, target.children, data[key], depth + 1);
             }
         } else if (target.type == 'data') {
-            var items = [];
+            // Get value(s) from the data attribute, a custom attribute or content of tag
+            var values = [];
             $elem.each(function() {
-                var value;
-                if (target.attr) {
-                //if (target.hasOwnProperty('attr')) {
-                    value = $(this).attr(target.attr);
+                if (target.data) {
+                    // Ex: <div data-a="value" data-b="value" data-c="value">
+                    var data = Array.isArray(target.data) ? target.data : [ target.data ];
+                    for (var j = 0; j < data.length; j++) {
+                        values.push($(this).data(data[j]));
+                    }
+                } else if (target.attr) {
+                    // Ex: <img src="value">, <a href="value">foo</a>
+                    values.push($(this).attr(target.attr));
+                } else if (target.text) {
+                    // Ex: <div>value<span>skip this</span></div>
+                    values.push($(this).contents().filter(function() { return this.nodeType == 3; } ).text()); // 3 = TEXT_NODE
                 } else {
-                    if (target.regex) {
-                        var matches = $(this).html().match(new RegExp(target.regex.pattern));
-                        value = matches[target.regex.matchIndex];
-                        log.debug(logPrefix + 'Regex: ' + target.regex.pattern + ', Match: ' + value);
-                    } else {
-                        value = target.tags ? $(this).html().trim() : $(this).text().trim();
-                    }
-                }
-                if (target.functions) {
-                    for (var i = 0; i < target.functions.length; i++) {
-                        log.debug(logPrefix + 'Run function: ' + target.functions[i] + '(' + value + ')');
-                        switch (target.functions[i]) {
-                            case 'parsePrice':
-                                value = parsePrice(value);
-                                break;
-                            case 'toInt':
-                                value = toInt(value);
-                                break;
-                            case 'htmlEntitiesDecode':
-                                value = he.decode(value);
-                                break;
-                        }
-                    }
-                }
-                if (value) {
-                    items.push(value);
+                    // Ex: <div><p>value 1</p><p>value 2</p></div>, <div>value</div>
+                    var value = target.tags ? $(this).html() : $(this).text();
+                    values.push(value.trim());
                 }
             });
             
-            if (items.length > 1) {
-                if (target.glue) {
-                    log.debug(logPrefix + 'Glue: ' + items.length + ' items joined with "' + target.glue + '"');
-                    items = items.join(target.glue);
+            // Run functions defined in config on found values
+            if (target.func) {
+                var functions = Array.isArray(target.func) ? target.func : [ target.func ];
+                for (var j = 0; j < functions.length; j++) {
+                    var name = functions[j].name;
+                    var args = functions[j].args;
+                    for (var k = 0; k < values.length; k++) {
+                        var value = values[k];
+                        values[k] = _functions[name](value, args);
+                        log.silly(logPrefix + 'Run function: ' + name + (args ? ' (' + value + ', ' + JSON.stringify(args) + ')' : ''));
+                    }
                 }
-                data[key] = items;
-            } else if (items.length) {
-                data[key] = items.pop();
+            }
+            
+            // Store found and processed values in data structure
+            if (values.length > 1) {
+                // Support joining of values
+                if (target.glue) {
+                    log.silly(logPrefix + 'Glue: ' + values.length + ' items joined with "' + target.glue + '"');
+                    values = values.join(target.glue);
+                }
+                data[key] = data[key] ? Array.concat(data[key], values) : values; // join values with same name
+            } else if (values.length) {
+                data[key] = data[key] ? values.concat(data[key]) : values.pop(); // join values with same name
             }
         }
     }
 }
 
-function parsePrice(price) {
-    var result = price;
-    //price = price.replace(/<[^>]+>[^<]+<[^>]+>/ig,""); // strip extra tags
-    result = result.replace(/[^\d,.]/g, ""); // strip everything except numbers, "," and "."
-    result = result.replace(/,\d{2}$|,$/g, ""); // strip ending ",00" and ","
-    result = result.replace(/,|\./g, ""); // strip "," and "."
-    
-    result = toInt(result);
-    
-    // Log if our algorithm doesn't work
-    if (!result) {
-        log.warn('[Parser] parcePrice failed on: "' + price + '"')
+// Parse functions
+var _functions = {
+    regexp: function(value, args) {
+        var matches = value.match(new RegExp(args[0]));
+        return matches[args[1]];
+    },
+    prepend: function(value, text) {
+        return text + value;
+    },
+    append: function(value, text) {
+        return value + text;
+    },
+    replace: function(value, args) {
+        // Check if patterh is a regex or string
+        var matches = args[0].match(/^\/([\s\S]+)\/$/);
+        var pattern = matches ? new RegExp(matches[1]) : args[0];
+        return value.replace(pattern, args[1]);
+    },
+    toInt: function(value) {
+        return /^\d+$/.test(value) ? parseInt(value, 10) : false;
+    },
+    parsePrice: function(price) {
+        // Example inputs: "kr 2.347,95", "969 NOK", "625 kr."
+        price = price.replace(/[^\d,.]/g, ''); // strip everything except numbers, "," and "."
+        var match = price.match(/^([\d,.]+)[.,](\d{2})$/); // split price on decimals if they exist
+        if (match) {
+            price = match[1].replace(/[,.]/g, ''); // strip "," and "." from the part before the decimals
+            price = Math.round(price + '.' + match[2]); // add decimals and round
+        } else {
+            price = parseInt(price.replace(/[,.]/g, ''), 10); // strip "," and "." and convert to int
+        }
+        return price;
+    },
+    htmlEntitiesDecode: function(value) {
+        return he.decode(value);
     }
-    
-    return result;
 }
 
-function toInt(value) {
-    return /^\d+$/.test(value) ? parseInt(value, 10) : false;
-}
 
-//// https://github.com/kvz/phpjs/blob/master/functions/url/rawurldecode.js
-//function rawurldecode(str) {
-//    return decodeURIComponent((str + '')
-//        .replace(/%(?![\da-f]{2})/gi, function () {
-//            return '%25';
-//        })
-//    );
-//}
 
 module.exports = Parser;

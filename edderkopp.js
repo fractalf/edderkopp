@@ -6,38 +6,39 @@ var Parser = require('./parser');
 var Elasticsearch = require('./elasticsearch');
 var Solr = require('./solr');
 
-var Edderkopp = function() {
-    var self = this;
-    
+var Edderkopp = function(options) {
     this.config = new Config();
     this.queue = new Queue();
     this.download = new Download();
     this.parser = new Parser();
-
-    //this.solr = new Solr('host', 'port', 'index');
+    this.site = null; // Current site
     
+    if (options && options.loglevel) {
+        log.transports.console.level = options.loglevel;
+    }
 };
 
-Edderkopp.prototype.initIndex = function(target) {
-    if (!this.config.loadAuth(target)) {
-        return;
-    }
-    
-    if (target == 'elasticsearch') {
-        this.elasticsearch = new Elasticsearch(this.config.elasticsearch);
-    } else if (target == 'solr') {
-        
-    }
-}
+//Edderkopp.prototype.initIndex = function(target) {
+//    if (!this.config.loadAuth(target)) {
+//        return;
+//    }
+//    
+//    if (target == 'elasticsearch') {
+//        this.elasticsearch = new Elasticsearch(this.config.elasticsearch);
+//    } else if (target == 'solr') {
+//        
+//    }
+//}
+//
+//Edderkopp.prototype.checkIndex = function() {
+//    this.initIndex('elasticsearch');
+//    if (this.elasticsearch) {
+//        this.elasticsearch = new Elasticsearch(this.config.elasticsearch);
+//        this.elasticsearch.info();
+//    }
+//}
 
-Edderkopp.prototype.checkIndex = function() {
-    this.initIndex('elasticsearch');
-    if (this.elasticsearch) {
-        this.elasticsearch = new Elasticsearch(this.config.elasticsearch);
-        this.elasticsearch.info();
-    }
-}
-
+// DEPRECIATED
 Edderkopp.prototype.initSite = function(site) {
     log.verbose('[Edderkopp] Init site: ' + site);
     
@@ -50,7 +51,7 @@ Edderkopp.prototype.initSite = function(site) {
     });
     return true;
 }
-
+// DEPRECIATED
 Edderkopp.prototype.getSite = function(site) {
     log.verbose('[Edderkopp] Get site: ' + site);
 

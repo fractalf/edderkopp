@@ -1,34 +1,50 @@
 var request = require('request');
 var log = require('./log');
+var Promise = require('es6-promise').Promise;
 
 var Download = function() {}
 
 Download.prototype = Object.create(require('events').EventEmitter.prototype);
 
-Download.prototype.get = function(url) {
-    var self = this;
-    log.verbose('[Download] Get: ' + url);
-    var t0 = process.hrtime();
+Download.prototype.get = function(url, obj) {
+    //var self = this;
+    var t = process.hrtime();
     var options = {
         url: url,
         headers: {
             'User-Agent': 'request'
-        }
+        },
+        timeout: 30000
     }
-    request(options, function (error, response, html) {
-        if (error !== null) {
-            log.error('[Download] ' + error.toString() + ' (' + url + ')');
-        } else if (response.statusCode !== 200) {
-            log.error('[Download] Status code ' + response.statusCode + ' (' + url + ')');
-            log.error('[Download] Response: ' + JSON.stringify(response));
-        } else if (html){
-            var t1 = process.hrtime(t0);
-            var diff = (t1[0] + t1[1] * 1e-9).toFixed(2);
-            log.verbose('[Download] Finished in ' + diff + 's');
-            self.emit('finished', { html: html, url: url });
-        } else {
-            log.error('[Download] WEIRD!! No errors AND no html');
-        }
+    return new Promise(function (fulfill, reject) {
+        request(options, function (error, response, html) {
+            if (error !== null) {
+                if (error.code === 'ETIMEDOUT') {
+                    log.warn('[Download] Timeout of ' + options.timeout * 0.001 + 's reached for ' + url);
+                    obj ? fulfill(obj) : fulfill();
+                } else {
+                    log.error('[Download] ' + error.toString() + ' (' + url + ')');
+                    reject(error);
+                }
+            } else if (response.statusCode !== 200) {
+                //log.error('[Download] Status code ' + response.statusCode + ' (' + url + ')');
+                //log.error('[Download] Response: ' + JSON.stringify(response));
+                reject(response);
+            } else if (html){
+                t = process.hrtime(t);
+                var diff = (t[0] + t[1] * 1e-9).toFixed(2);
+                log.verbose('[Download] ' + url + ' (' + diff + 's)');
+                if (obj) {
+                    obj.html = html;
+                    fulfill(obj);
+                } else {
+                    fulfill(html);
+                }
+            } else {
+                log.error('[Download] WEIRD!! No errors AND no html');
+                reject();
+            }
+        });
     });
     
 }
