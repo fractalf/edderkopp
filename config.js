@@ -2,31 +2,38 @@ var fs = require('fs');
 var URI = require('URIjs');
 var log = require('./log');
 
-//var _config;
-var _config = '/nfs/home/alf/edderkopp/config';
+var _config;
+var _shops;
 
-var Config = function() {
-    //this.shops = {};
-    //this.sites = {};
+// Read config.json
+var file = __dirname + '/config.json';
+if (fs.existsSync(file)) {
+    _config = JSON.parse(fs.readFileSync(file));
+} else {
+    log.error('[Config] Missing ' + file);
 }
+
+var Config = function() {}
 
 // Load all shops
 Config.prototype.getShops = function() {
-    log.verbose('[Config] Get config for all shops');
-    var files = getFiles(_config + '/sites/shops');
-    var config = {};
-    for (var i = 0; i < files.length; i++) {
-        var obj = JSON.parse(fs.readFileSync(files[i]).toString());
-        config[obj.key] = obj;
-        config[obj.id] = obj;
-        
+    if (!_shops) {
+        log.verbose('[Config] Get config for all shops');
+        var files = getFiles(_config.shops + '/sites/shops');
+        var _shops = {};
+        for (var i = 0; i < files.length; i++) {
+            var obj = JSON.parse(fs.readFileSync(files[i]).toString());
+            _shops[obj.key] = obj;
+            _shops[obj.id] = obj;
+            
+        }
     }
-    return config;
+    return _shops;
 }
 
 Config.prototype.getByUrl = function(url) {
     var hostname = new URI(url).hostname();
-    var files = getFiles(_config + '/sites');
+    var files = getFiles(_config.shops + '/sites');
     for (var i = 0; i < files.length; i++) {
         var obj = JSON.parse(fs.readFileSync(files[i]).toString());
         if (hostname == new URI(obj.url).hostname()) {
@@ -51,16 +58,6 @@ Config.prototype.getByUrl = function(url) {
 //    }
 //}
 
-//function init() {
-//    if (!_config) {
-//        var file = __dirname + '/config.json';
-//        if (fs.existsSync(file)) {
-//            _config = JSON.parse(fs.readFileSync(file).toString());
-//        } else {
-//            log.error('[Config] Missing ' + file);
-//        }
-//    }
-//}
 
 function getContent(file) {
     var obj = JSON.parse(fs.readFileSync(path + '/' + file).toString());

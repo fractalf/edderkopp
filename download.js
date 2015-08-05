@@ -27,8 +27,8 @@ Download.prototype.get = function(url, obj) {
                     reject(error);
                 }
             } else if (response.statusCode !== 200) {
-                //log.error('[Download] Status code ' + response.statusCode + ' (' + url + ')');
-                //log.error('[Download] Response: ' + JSON.stringify(response));
+                log.error('[Download] Status code ' + response.statusCode + ' (' + url + ')');
+                log.error('[Download] Response: ' + JSON.stringify(response));
                 reject(response);
             } else if (html){
                 t = process.hrtime(t);
