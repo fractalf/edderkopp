@@ -13,8 +13,13 @@ var Edderkopp = function(options) {
     this.parser = new Parser();
     this.site = null; // Current site
     
-    if (options && options.logLevel) {
-        log.transports.console.level = options.logLevel;
+    if (options) {
+        if (options.configPath) {
+            this.config.setPath(options.configPath);
+        }
+        if (options.logLevel) {
+            log.transports.console.level = options.logLevel;
+        }
     }
 };
 

@@ -2,24 +2,25 @@ var fs = require('fs');
 var URI = require('URIjs');
 var log = require('./log');
 
-var _config;
+var _config = './config';
 var _shops;
-
-// Read config.json
-var file = __dirname + '/config.json';
-if (fs.existsSync(file)) {
-    _config = JSON.parse(fs.readFileSync(file));
-} else {
-    log.error('[Config] Missing ' + file);
-}
 
 var Config = function() {}
 
+// Inject config path
+Config.prototype.setPath = function(path) {
+    if (fs.existsSync(path)) {
+        _config = path;
+    } else {
+        throw new Error('Path "' + path + '" don\'t exist');
+    }
+}
+    
 // Load all shops
 Config.prototype.getShops = function() {
     if (!_shops) {
         log.verbose('[Config] Get config for all shops');
-        var files = getFiles(_config.shops + '/sites/shops');
+        var files = getFiles(_config + '/sites/shops');
         var _shops = {};
         for (var i = 0; i < files.length; i++) {
             var obj = JSON.parse(fs.readFileSync(files[i]).toString());
@@ -33,7 +34,7 @@ Config.prototype.getShops = function() {
 
 Config.prototype.getByUrl = function(url) {
     var hostname = new URI(url).hostname();
-    var files = getFiles(_config.shops + '/sites');
+    var files = getFiles(_config + '/sites');
     for (var i = 0; i < files.length; i++) {
         var obj = JSON.parse(fs.readFileSync(files[i]).toString());
         if (hostname == new URI(obj.url).hostname()) {
