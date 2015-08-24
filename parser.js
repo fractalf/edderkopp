@@ -135,7 +135,20 @@ function pageParser($container, targets, data, depth) {
     log.silly(logPrefix + 'Depth: ' + depth);
     for (var i = 0; i < targets.length; i++) {
         var target = targets[i];
-        var $elem = $container !== null ? $(target.elem, $container) : $(target.elem);
+
+        // Support single and multiple elements. Ex: '.foobar' and ['.foo', '.bar']
+        var elements = Array.isArray(target.elem) ? target.elem : [ target.elem ];
+        
+        var $elem;
+        if (target.ifelse) {
+            // Only use the first found element in array
+            for (var l = 0; l < elements.length; l++) {
+                $elem = $container !== null ? $(elements[l], $container) : $(elements[l]);
+                if ($elem.length) { break; }
+            }
+        } else {
+            $elem = $container !== null ? $(elements.join(','), $container) : $(elements.join(','));
+        }
         
         var msg = target.type + ': ' + target.elem + (target.name ? ' (' + target.name + ')' : '');
         if ($elem.length === 0) {

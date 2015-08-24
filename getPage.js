@@ -17,6 +17,7 @@ if (url === undefined) {
 // Init Edderkopp
 var edderkopp = new Edderkopp();
 
+edderkopp.config.setPath('/nfs/home/alf/prisguide/node/config');
 var config = edderkopp.config.getByUrl(url);
 
 
@@ -33,7 +34,7 @@ edderkopp.download.get(url).then(function(html) {
     
     // Parse html and get data specified in config
     var data = edderkopp.parser.getData(obj);
-    log.info(data);
+    log.info(data.web);
 }).catch(function (error) {
     log.error(error);
 });
