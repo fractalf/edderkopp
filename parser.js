@@ -249,9 +249,8 @@ var _functions = {
         return value + text;
     },
     replace: function(value, args) {
-        // Check if patterh is a regex or string
-        var matches = args[0].match(/^\/([\s\S]+)\/$/);
-        var pattern = matches ? new RegExp(matches[1]) : args[0];
+        // Check if pattern is a regex or string
+        var pattern = args[2] && args[2] == 'regexp' ? new RegExp(args[0]) : args[0];
         return value.replace(pattern, args[1]);
     },
     toInt: function(value) {
