@@ -250,7 +250,7 @@ var _functions = {
     },
     replace: function(value, args) {
         // Check if pattern is a regex or string
-        var pattern = args[2] && args[2] == 'regexp' ? new RegExp(args[0]) : args[0];
+        var pattern = args[2] && args[2] == 'regexp' ? new RegExp(args[0], 'g') : args[0];
         return value.replace(pattern, args[1]);
     },
     toInt: function(value) {
