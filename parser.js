@@ -256,7 +256,7 @@ var _functions = {
     toInt: function(value) {
         return /^\d+$/.test(value) ? parseInt(value, 10) : false;
     },
-    parsePrice: function(price) {
+    parsePrice: function(price, args) {
         // Example inputs: "kr 2.347,95", "969 NOK", "625 kr."
         price = price.replace(/[^\d,.]/g, ''); // strip everything except numbers, "," and "."
         var match = price.match(/^([\d,.]+)[.,](\d{2})$/); // split price on decimals if they exist
@@ -265,6 +265,9 @@ var _functions = {
             price = Math.round(price + '.' + match[2]); // add decimals and round
         } else {
             price = parseInt(price.replace(/[,.]/g, ''), 10); // strip "," and "." and convert to int
+        }
+        if (args && args.addVat) {
+            price *= 1.25; // Add MVA/VAT
         }
         return price;
     },
