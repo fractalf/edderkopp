@@ -240,13 +240,31 @@ function pageParser($container, targets, data, depth) {
 var _functions = {
     regexp: function(value, args) {
         var matches = value.match(new RegExp(args[0]));
-        return matches[args[1]];
+        return args[1] ? matches[args[1]] : matches;
     },
     prepend: function(value, text) {
         return text + value;
     },
     append: function(value, text) {
         return value + text;
+    },
+    join: function(value, args) {
+        var str = '';
+        for (var i = 0; i < args.length; i++) {
+            if (args[i].charAt(0) === '$') {
+                if (Array.isArray(value)) {
+                    var index = parseInt(args[i].substr(1));
+                    str += value[index];
+                }
+                else {
+                    str += value;
+                }
+            }
+            else {
+                str += args[i];
+            }
+        }
+        return str;
     },
     replace: function(value, args) {
         // Check if pattern is a regex or string
