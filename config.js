@@ -46,6 +46,10 @@ Config.prototype.getByUrl = function(url) {
     return false;
 }
 
+Config.prototype.parseFile = function(file) {
+    return JSON.parse(fs.readFileSync(file).toString());    
+}
+
 //Config.prototype.load = function(target, key) {
 //    log.verbose('[Config] Load ' + target + ': ' + key);
 //    init();
