@@ -240,7 +240,11 @@ function pageParser($container, targets, data, depth) {
 var _functions = {
     regexp: function(value, args) {
         var matches = value.match(new RegExp(args[0]));
-        return args[1] ? matches[args[1]] : matches;
+        if (matches) {
+            return args[1] ? matches[args[1]] : matches;
+        } else {
+            return null;
+        }
     },
     prepend: function(value, text) {
         return text + value;
