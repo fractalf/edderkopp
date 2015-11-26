@@ -24,12 +24,12 @@ Download.prototype.get = function(url, obj) {
                     obj ? fulfill(obj) : fulfill();
                 } else {
                     log.error('[Download] ' + error.toString() + ' (' + url + ')');
-                    reject(error);
+                    reject(error.toString());
                 }
             } else if (response.statusCode !== 200) {
                 log.error('[Download] Status code ' + response.statusCode + ' (' + url + ')');
-                log.error('[Download] Response: ' + JSON.stringify(response));
-                reject(response);
+                //log.error('[Download] Response: ' + JSON.stringify(response));
+                reject(response.statusCode);
             } else if (html){
                 t = process.hrtime(t);
                 var diff = (t[0] + t[1] * 1e-9).toFixed(2);
