@@ -14,7 +14,7 @@ Download.prototype.get = function(url, obj) {
         headers: {
             'User-Agent': 'request'
         },
-        timeout: 30000
+        timeout: 60000
     }
     return new Promise(function (fulfill, reject) {
         request(options, function (error, response, html) {
