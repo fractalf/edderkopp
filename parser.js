@@ -122,6 +122,10 @@ Parser.prototype.getLinks = function() {
 
 Parser.prototype.getData = function(obj) {
     log.verbose('[Parser] Parse content of ' + obj.url);
+    if (!obj.html) {
+        log.error('[Parser] No html for: ' + obj.url);
+        return obj;
+    }
     $ = cheerio.load(obj.html);
     obj.web = {};
     pageParser(null, obj.config.targets, obj.web);
