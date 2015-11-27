@@ -279,9 +279,9 @@ var _functions = {
         return /^\d+$/.test(value) ? parseInt(value, 10) : false;
     },
     parsePrice: function(price, args) {
-        // Example inputs: "kr 2.347,95", "969 NOK", "625 kr."
-        price = price.replace(/[^\d,.]/g, ''); // strip everything except numbers, "," and "."
-        var match = price.match(/^([\d,.]+)[.,](\d{2})$/); // split price on decimals if they exist
+        // Example inputs: "kr 2.347,95", "969 NOK", "625 kr.", "449.0" (number)
+        price = price.toString().replace(/[^\d,.]/g, ''); // strip everything except numbers, "," and "."
+        var match = price.match(/^([\d,.]+)[.,](\d{1,2})$/); // split price on decimals if they exist
         if (match) {
             price = match[1].replace(/[,.]/g, ''); // strip "," and "." from the part before the decimals
             price = Math.round(price + '.' + match[2]); // add decimals and round
