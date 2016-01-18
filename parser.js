@@ -289,8 +289,10 @@ var _functions = {
         if (match) {
             price = match[1].replace(/[,.]/g, ''); // strip "," and "." from the part before the decimals
             price = Math.round(price + '.' + match[2]); // add decimals and round
-        } else {
+        } else if (price) {
             price = parseInt(price.replace(/[,.]/g, ''), 10); // strip "," and "." and convert to int
+        } else {
+            price = null;
         }
         if (args && args.addVat) {
             price *= 1.25; // Add MVA/VAT

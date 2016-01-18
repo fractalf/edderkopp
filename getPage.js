@@ -2,8 +2,8 @@
 var log = require('./log');
 var Edderkopp = require('./edderkopp');
 
-log.transports.console.level = 'verbose';
-//log.transports.console.level = 'debug';
+//log.transports.console.level = 'verbose';
+log.transports.console.level = 'debug';
 log.transports.console.prettyPrint = true;
 
 // Check argv
@@ -17,7 +17,7 @@ if (url === undefined) {
 // Init Edderkopp
 var edderkopp = new Edderkopp();
 
-//edderkopp.config.setPath('/home/user/config');
+edderkopp.config.setPath('/nfs/home/alf/git/prisguide/node/config');
 var config = edderkopp.config.getByUrl(url);
 if (config) {
     edderkopp.download.get(url).then(function(html) {
@@ -32,7 +32,7 @@ if (config) {
         
         // Parse html and get data specified in config
         var data = edderkopp.parser.getData(obj);
-        log.info(data.web);
+        //log.info(data.web);
     }).catch(function (error) {
         log.error(error);
     });
