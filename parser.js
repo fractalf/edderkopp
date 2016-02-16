@@ -295,7 +295,7 @@ var _functions = {
             price = null;
         }
         if (args && args.addVat) {
-            price *= 1.25; // Add MVA/VAT
+            price = Math.round(price * 1.25); // Add MVA/VAT and round
         }
         return price;
     },
