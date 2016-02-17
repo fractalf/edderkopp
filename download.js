@@ -28,7 +28,7 @@ Download.prototype.get = function(url, obj) {
                 }
             } else if (response.statusCode !== 200) {
                 log.error('[Download] Status code ' + response.statusCode + ' (' + url + ')');
-                if (response.statusCode == 404) {
+                if (response.statusCode == 404 || response.statusCode == 500) {
                     obj ? fulfill(obj) : fulfill();
                 } else {
                     reject(response.statusCode);
