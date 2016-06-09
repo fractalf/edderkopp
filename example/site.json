@@ -1,0 +1,126 @@
+{
+    "id": 1234,
+    "name": "site",
+    "pages": {
+        "somePage": [
+            {
+                "name": "item",
+                "data": "object",
+                "kids": [
+                    {
+                        "name": "title",
+                        "elem": "head meta[property=og\\:title]",
+                        "data": [ "attr", "content"]
+                    },
+                    {
+                        "elem": ".item",
+                        "kids": [
+                            {
+                                "name": "id",
+                                "data": [ "data", "id"],
+                                "task": [
+                                    [ "match", "\\D*'([\\d]+)\\D*", 1 ],
+                                    [ "parseInt" ]
+                                ]
+                            },
+                            {
+                                "name": "image",
+                                "elem": ".image-main img, .image-extra img",
+                                "data": [ "attr", "src" ],
+                                "task": [
+                                    [ "replace", "thumb", "big" ],
+                                    [ "prepend", "https://foo.bar/" ]
+                                ]
+                            },
+                            {
+                                "name": "description",
+                                "elem": ".description",
+                                "data": "html"
+                            },
+                            {
+                                "name": "short",
+                                "elem": ".short"
+                            },
+                            {
+                                "elem": ".wrapper",
+                                "kids": [
+                                    {
+                                        "name": "subtitle",
+                                        "elem": "meta[itemprop=title]",
+                                        "data": [ "attr", "content" ]
+                                    },
+                                    {
+                                        "name": "image",
+                                        "elem": ".image-wrapped img",
+                                        "data": [ "attr", "src" ],
+                                        "task": [
+                                            [ "replace", "thumb", "big" ],
+                                            [ "prepend", "https://bar.foo/" ],
+                                            [ "append", "?foo=bar" ]
+                                        ]
+                                    },
+                                    {
+                                        "name": "textOnly",
+                                        "elem": ".text-only",
+                                        "data": "txtn"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "special",
+                                "elem": ".special",
+                                "data": "object",
+                                "kids": [
+                                    {
+                                        "name": "first",
+                                        "data": [ "data", "title" ]
+                                    },
+                                    {
+                                        "name": "second",
+                                        "elem": "p"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "objects",
+                                "data": "object",
+                                "kids": [
+                                    {
+                                        "name": "objectWrapper",
+                                        "elem": ".objects .group",
+                                        "data": "array",
+                                        "kids": [
+                                            {
+                                                "name": "group",
+                                                "data": [ "attr", "content" ]
+                                            },
+                                            {
+                                                "name": "comment",
+                                                "elem": ".comment"
+                                            },
+                                            {
+                                                "name": "details",
+                                                "elem": ".details",
+                                                "data": "array",
+                                                "kids": [
+                                                    {
+                                                        "name": "color",
+                                                        "elem": ".color"
+                                                    },
+                                                    {
+                                                        "name": "material",
+                                                        "elem": ".material"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -1,29 +1,39 @@
 {
   "name": "edderkopp",
-  "version": "0.1.0",
-  "description": "Crawl webpages and get data according to config file",
-  "main": "edderkopp.js",
+  "version": "1.0.0-alpha",
+  "description": "Crawl and scrape webpages for data using simple json config files",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "babel src -d dist",
+    "watch": "babel --watch src -d dist"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/fractalf/edderkopp.git"
   },
-  "author": "Alf Marius Foss Olsen",
-  "license": "GNU GENERAL PUBLIC LICENSE",
+  "keywords": [
+    "crawler",
+    "es6",
+    "es2015"
+  ],
+  "author": "Alf Marius Foss Olsen <alfm@arius.in>",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/fractalf/edderkopp/issues"
   },
-  "homepage": "https://github.com/fractalf/edderkopp#readme",
+  "homepage": "https://github.com/fractalf/edderkopp",
   "dependencies": {
-    "URIjs": "^1.15.2",
-    "cheerio": "^0.19.0",
-    "elasticsearch": "^5.0.0",
-    "es6-promise": "^2.3.0",
-    "he": "^0.5.0",
-    "request": "^2.58.0",
-    "solr-client": "^0.5.0",
-    "winston": "^1.0.1"
+    "bluebird": "^3.4.0",
+    "blueimp-md5": "^2.3.0",
+    "cheerio": "^0.20.0",
+    "request": "^2.72.0",
+    "robots-parser": "^1.0.0",
+    "urijs": "^1.18.1",
+    "winston": "^2.2.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.9.0",
+    "babel-preset-es2015": "^6.9.0",
+    "babel-preset-stage-0": "^6.5.0"
   }
 }

@@ -1,4 +1,14 @@
-var winston = require('winston');
+import winston from 'winston';
+/**
+ * Config levels:
+ *   silly: 0,
+ *   debug: 1,
+ *   verbose: 2,
+ *   info: 3,
+ *   warn: 4,
+ *   error: 5
+ */
+
 winston.emitErrs = true;
 
 var log = new winston.Logger({
@@ -22,13 +32,8 @@ var log = new winston.Logger({
     exitOnError: false
 });
 
-module.exports = log;
+log.setLevel = function(level) {
+    this.transports.console.level = level;
+};
 
-//npmConfig.levels = {
-//    silly: 0,
-//    debug: 1,
-//    verbose: 2,
-//    info: 3,
-//    warn: 4,
-//    error: 5
-//};
+export default log;

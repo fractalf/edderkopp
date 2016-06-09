@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Foo Bar</title>
+    <meta property="og:title" content="Foo Bar" />
+</head>
+<body>
+
+    <div class="item" data-id="foo('foo','bar', '1234', null)">
+        <div class="image-main">
+            <img src="path/img1-big.jpg">
+        </div>
+        <div class="image-extra">
+            <img src="path/img1-thumb.jpg">
+            <img src="path/img2-thumb.jpg">
+        </div>
+        <div class="description">
+            <p>Once upon a time there was an <strong>item</strong></p>
+            <p>that lived happily ever after</p>
+        </div>
+        <div class="short">
+            <span>Get this but not the wrapping span tags or <strong>strong</strong> tags</span>
+        </div>
+        <div class="wrapper">
+            <meta itemprop="title" content="foobar">
+            <div class="image-wrapped">
+                <img src="path/img3-thumb.jpg">
+            </div>
+            <div class="text-only">
+                <span>Don't get this element</span>
+                This is what I want!
+                <span>Don't get this element</span>
+            </div>
+        </div>
+        <div class="special" data-title="I'm special">
+            <p>I'm not special</p>
+        </div>
+        
+        <div class="objects">
+            <div class="group" content="Square objects">
+                <h1 class="comment">Square comment</h1>
+                <div class="details">
+                    <div class="color">Blue</div>
+                    <div class="material">Metal</div>
+                </div>
+                <div class="details">
+                    <div class="color">Green</div>
+                    <div class="material">Wood</div>
+                </div>
+            </div>
+
+            <div class="group" content="Round objects">
+                <h1 class="comment">Round comment</h1>
+                <div class="details">
+                    <div class="color">Yellow</div>
+                    <div class="material">Plastic</div>
+                </div>
+                <div class="details">
+                    <div class="color">Purple</div>
+                    <div class="material">Rubber</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>
