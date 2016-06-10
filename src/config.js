@@ -11,31 +11,31 @@ function setPath(path) {
 
 function get(arg) {
     if (Number.isInteger(arg)) {
-        return getById(arg);
+        return _getById(arg);
     } else if (arg.indexOf('http') !== -1) {
-        return getByUrl(arg);
+        return _getByUrl(arg);
     } else if (/^[^/]+\.json$/.test(arg)) {
-        return parse(_path + '/' + arg);
+        return _parse(_path + '/' + arg);
     } else {
-        return parse(arg);
+        return _parse(arg);
     }
 }
 
-function getById(id) {
-    let files = getFiles(_path);
+function _getById(id) {
+    let files = _getFiles(_path);
     for (let i = 0; i < files.length; i++) {
         if (files[i].match(/-(\d+)/).pop() == id) {
-            return parse(files[i]);
+            return _parse(files[i]);
         }
     }
     return false;
 }
 
-function getByUrl(url) {
+function _getByUrl(url) {
     let hostname = new URI(url).hostname();
-    let files = getFiles(_path);
+    let files = _getFiles(_path);
     for (let i = 0; i < files.length; i++) {
-        let config = parse(files[i]);
+        let config = _parse(files[i]);
         if (hostname == new URI(config.url).hostname()) {
             return config;
         }
@@ -44,11 +44,11 @@ function getByUrl(url) {
 }
 
 // Recursivly find all files
-function getFiles(path) {
+function _getFiles(path) {
     var files = [];
-    fs.readdirSync(path).forEach( (file) => {
+    fs.readdirSync(path).forEach((file) => {
         if (fs.statSync(path + '/' + file).isDirectory()) {
-            files = files.concat(getFiles(path + '/' + file));
+            files = files.concat(_getFiles(path + '/' + file));
         } else {
             files.push(path + '/' + file);
         }
@@ -56,6 +56,11 @@ function getFiles(path) {
     return files;
 }
 
-function parse(file) {
-    return JSON.parse(fs.readFileSync(file).toString());
+function _parse(file) {
+    var match = file.match(/.*\.([^.]*)$/);
+    if (match[1] == 'json') {
+        return JSON.parse(fs.readFileSync(file).toString());
+    } else if (match[1] == 'js') {
+        return require(file);
+    }
 }
