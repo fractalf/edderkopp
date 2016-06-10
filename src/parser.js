@@ -3,7 +3,7 @@ import cheerio from "cheerio";
 import log from './log';
 import * as tasks from './parser.tasks';
 
-export default class Parser {
+export default class {
 
     constructor(html) {
         this.$ = cheerio.load(html);
@@ -11,6 +11,28 @@ export default class Parser {
 
     getData(rules) {
         return this._recParse(rules);
+    }
+
+    getLinks(skipClasses) {
+        let $ = this.$;
+
+        let links = [];
+
+        // Build selector
+        let selector = 'a[rel!=nofollow]';
+        if (skipClasses) {
+            selector += ':not(' + skipClasses.join(',') + ')';
+        }
+
+        // Find and handle elements
+        $(selector).each((i, elem) => {
+            let url = $(elem).attr('href');
+            url = typeof url === 'string' ? url.trim() : false;
+            if (url) {
+                links.push(url);
+            }
+        });
+        return links;
     }
 
     // Recursively parse DOM
@@ -59,7 +81,7 @@ export default class Parser {
                     // Ex: <p>paragraph 1</p> <p>paragraph 2</p> <p>paragraph 3</p>
                     values.push($(this).html().trim());
                     break;
-                case 'txtn':
+                case 'text':
                     // Get only text nodes
                     // Ex: <span>skip this</span> get this <span>skip this</span>
                     values.push($(this).contents().filter(function() {
@@ -80,7 +102,6 @@ export default class Parser {
                         values.push($(this).data(rule.data[i]));
                     }
                     break;
-                case 'text':
                 default:
                     // Get only text (strip away tags)
                     values.push($(this).text().trim());

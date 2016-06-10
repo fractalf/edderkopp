@@ -1,9 +1,11 @@
+import { logConsole, logFile } from "./log"
 import config from './config';
 import download from "./download"
 import Parser from "./parser"
-import log from "./log"
+import Crawler from "./crawler"
 
 global.VERSION = '1.0.0-alpha';
 global.USER_AGENT = 'Edderkopp/' + VERSION;
 
-export { config, download, Parser, log };
+let logger = { logConsole, logFile };
+export { logger, config, download, Parser, Crawler };

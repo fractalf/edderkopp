@@ -1,5 +1,4 @@
 import request from "request";
-import log from './log';
 
 export default function(url, timeout) {
     timeout = timeout ? timeout * 1000 : 60000;
@@ -9,6 +8,7 @@ export default function(url, timeout) {
         headers: {
             'User-Agent': USER_AGENT
         },
+        gzip: true,
         timeout: timeout
     }
     return new Promise(function (fulfill, reject) {
@@ -21,7 +21,9 @@ export default function(url, timeout) {
                 var diff = process.hrtime(t0);
                 fulfill({
                     html: html,
-                    time: (diff[0] + diff[1] * 1e-9).toFixed(2)
+                    time: (diff[0] + diff[1] * 1e-9).toFixed(2) + ' s',
+                    size: (response.socket.bytesRead / 1024).toFixed(2) + ' KB',
+                    gzip: response.headers['content-encoding'] == 'gzip' ? true : false
                 });
             } else {
                 reject('This should not happen');

@@ -1,14 +1,14 @@
 export {
-    _match as match,
-    _prepend as prepend,
-    _append as append,
-    _join as join,
-    _replace as replace,
-    _parseInt as parseInt
+    match,
+    prepend,
+    append,
+    join,
+    replace,
+    parseInt
 };
 
 // "task": [ "match", "\\/(\\d+)\\.", 1 ]
-function _match(args, value) {
+function match(args, value) {
     var matches = value.match(new RegExp(args[0]));
     if (matches) {
         return args[1] ? matches[args[1]] : matches;
@@ -18,18 +18,18 @@ function _match(args, value) {
 }
 
 // "task": [ "prepend",  "http://foo.bar/" ]
-function _prepend(args, value) {
+function prepend(args, value) {
     return args[0] + value;
 }
 
 // "task": [ "append",  "&foo=bar" ]
-function _append(args, value) {
+function append(args, value) {
     return value + args[0];
 }
 
 // "task": [ "join", "http://foo.bar/", "$1" ]
 // "task": [ "join", "$1", "$3", "(foobar)", "$2" ]
-function _join(args, value) {
+function join(args, value) {
     var str = '';
     for (var i = 0; i < args.length; i++) {
         if (args[i].charAt(0) === '$') {
@@ -43,7 +43,7 @@ function _join(args, value) {
 
 // "task": [ "replace",  "foo", "bar" ]
 // "task": [ "replace",  "[\\r\\n\\t\\s]+", "", "regexp" ]
-function _replace(args, value) {
+function replace(args, value) {
     if (typeof args[0] == 'string' && typeof args[1] == 'string') {
         args[0] = [ args[0] ];
         args[1] = [ args[1] ];
@@ -57,7 +57,7 @@ function _replace(args, value) {
 }
 
 // "task": [ "parseInt" ]
-function _parseInt(args, value) {
+function parseInt(args, value) {
     value = value ? value.replace(/[^\d]/g, '') : null;
     return value ? parseInt(value, 10) : null;
 }

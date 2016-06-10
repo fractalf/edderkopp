@@ -62,7 +62,7 @@
                                     {
                                         "name": "textOnly",
                                         "elem": ".text-only",
-                                        "data": "txtn"
+                                        "data": "text"
                                     }
                                 ]
                             },

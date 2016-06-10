@@ -180,10 +180,11 @@ Result : `{ myData: [ 'small.jpg', 'big.jpg' ] }`
 Note: *data* also supports one argument, returning a string (see *attr* above)
 
 ###Special case
-Sometimes a node has content you want as well as being a container! Take a look at this scenario:
+Sometimes a node has content as well as being a container!
 ```
 <div class="item" meta-title="foobar">
-  <a href="http://foo.bar">Click!</a>
+    <a href="http://foo.bar">Click!</a>
+    <img src="img.jpg">
   ..
 </div>
 ```
@@ -201,6 +202,11 @@ Sometimes a node has content you want as well as being a container! Take a look 
             "name": "url",
             "elem": "a",
             "data": [ "attr", "href" ]
+        },
+        {
+            "name": "image",
+            "elem": "img",
+            "data": [ "attr", "src" ]
         },
         ..
     ]

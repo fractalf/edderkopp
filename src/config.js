@@ -1,6 +1,5 @@
 import fs from 'fs';
 import URI from 'urijs';
-import log from './log';
 
 export default { setPath, get };
 
@@ -38,11 +37,9 @@ function getByUrl(url) {
     for (let i = 0; i < files.length; i++) {
         let config = parse(files[i]);
         if (hostname == new URI(config.url).hostname()) {
-            // log.verbose('[Config] Get config for ' + obj.name);
             return config;
         }
     }
-    // log.error('[Config] Missing config for ' + url);
     return false;
 }
 
