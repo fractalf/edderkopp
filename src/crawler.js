@@ -1,4 +1,3 @@
-// import URI from 'urijs';
 import fs from 'fs';
 import URI from 'urijs';
 import robotsParser from 'robots-parser';
@@ -10,10 +9,11 @@ import Cache from './cache';
 
 export default class {
 
-    delay = 60; // seconds
-    // maxPages = 5;
+    delay = 60; // sec
+    maxPages = 5;
     maxDepth = 2;
-    mediaFiles = /jpg|jpeg|png|gif|bmp|svg|pdf/i;
+    // Skip some common filetypes 'cause you never know whats out there (http://fileinfo.com/filetypes/common)
+    skipFiles = /jpg|jpeg|png|gif|bmp|tif|tiff|svg|pdf|wav|mpa|mp3|avi|flv|m4v|mov|mp4|mpg|swf|wmv|tar|gz|zip|rar|pkg|7z|xls|doc|log|odt|rtf|txt|exe|jar|com|bat/i;
 
     constructor(conf) {
         this.cache = new Cache();
@@ -152,7 +152,6 @@ export default class {
 
             // Build url
             let url = uri.toString();
-            // log.debug(url);
 
             // Skip handled links
             if (this.cache.has(url)) {
@@ -162,9 +161,9 @@ export default class {
                 this.cache.set(url);
             }
 
-            // Skip media files
-            if (uri.suffix().match(this.mediaFiles) !== null) {
-                log.silly('[crawler] Skip: media file - ' + url);
+            // Skip certain file types
+            if (uri.suffix().match(this.skipFiles) !== null) {
+                log.silly('[crawler] Skip: file - ' + url);
                 continue;
             }
 
