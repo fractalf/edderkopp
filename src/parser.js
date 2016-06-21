@@ -1,6 +1,6 @@
 import URI from 'urijs';
 import cheerio from "cheerio";
-import log from './log';
+import { logConsole as log } from './log';
 import * as tasks from './parser.tasks';
 
 export default class {
@@ -42,25 +42,36 @@ export default class {
         for (let i = 0; i < rules.length; i++) {
             const rule = rules[i];
             if (rule.name) {
-                const $elem = rule.elem ? $(rule.elem, $container) : $container;
-                if (rule.data == 'array') {
-                    data[rule.name] = [];
-                    $elem.each((i, e) => {
-                        let obj = {};
-                        data[rule.name].push(obj);
-                        this._recParse(rule.kids, obj, $(e));
-                    });
-                } else if (rule.data == 'object') {
-                    data[rule.name] = {};
-                    this._recParse(rule.kids, data[rule.name], $elem);
+                // const $elem = rule.elem ? $(rule.elem, $container) : $container;
+                let $elem, optional = false;
+                if (rule.elem) {
+                    if (Array.isArray(rule.elem)) {
+                        $elem = $(rule.elem[0], $container);
+                        optional = rule.elem[1] == 'optional';
+                    } else {
+                        $elem = $(rule.elem, $container);
+                    }
                 } else {
-                    if ($elem.length > 0) {
+                    $elem = $container;
+                }
+                if ($elem.length > 0) {
+                    if (rule.data == 'array') {
+                        data[rule.name] = data[rule.name] || [];
+                        $elem.each((i, e) => {
+                            let obj = {};
+                            data[rule.name].push(obj);
+                            this._recParse(rule.kids, obj, $(e));
+                        });
+                    } else if (rule.data == 'object') {
+                        data[rule.name] = {};
+                        this._recParse(rule.kids, data[rule.name], $elem);
+                    } else {
                         const values = this._getContent($elem, rule);
                         // Join values with same name
                         data[rule.name] = data[rule.name] ? [].concat(data[rule.name], values) : values;
-                    } else if (!rule.null){
-                        log.warn('Element not found: ' + rule.elem);
                     }
+                } else if (!optional){
+                    log.warn('[parser] Element not found: ' + rule.elem);
                 }
             } else if (rule.elem) {
                 this._recParse(rule.kids, data, $(rule.elem, $container));
@@ -92,14 +103,24 @@ export default class {
                     // Get content from attribute
                     // Ex: <img src="value">, <a href="value">foo</a>
                     for (let i = 1; i < rule.data.length; i++) {
-                        values.push($(this).attr(rule.data[i]));
+                        let attr = $(this).attr(rule.data[i]);
+                        if (attr) {
+                            values.push(attr);
+                        } else {
+                            log.warn('[parser] Attribute not found: ' + rule.data[i]);
+                        }
                     }
                     break;
                 case 'data':
                     // Get content from data
                     // Ex: <div data-img-a="value" data-img-b="value" data-img-c="value">
                     for (let i = 1; i < rule.data.length; i++) {
-                        values.push($(this).data(rule.data[i]));
+                        let data = $(this).data(rule.data[i]);
+                        if (data) {
+                            values.push(data);
+                        } else {
+                            log.warn('[parser] Data attribute not found: ' + rule.data[i]);
+                        }
                     }
                     break;
                 default:
@@ -124,21 +145,30 @@ export default class {
                 //  ]
                 task = rule.task;
             }
-            for (let i = 0; i < task.length; i++) {
-                for (let j = 0; j < values.length; j++) {
-                    let name = task[i][0];
-                    let args = task[i].slice(1);
-                    if (tasks[name]) {
-                        values[j] = tasks[name](args, values[j]);
-                    } else {
-                        log.warn('task not exist: ' + name);
+
+            for (let t of task) {
+                let name = t[0];
+                if (tasks[name]) {
+                    let args = t.slice(1);
+                    let tmp = [];
+                    for (let value of values) {
+                        let res = tasks[name](args, value);
+                        if (Array.isArray(res)) {
+                            tmp = tmp.concat(res);
+                        } else if (res) {
+                            tmp.push(res);
+                        }
                     }
+                    values = tmp;
+                } else {
+                    log.warn('task not exist: ' + name);
                 }
             }
         }
 
-        if (values.length == 1) {
-            values = values.pop();
+        // No need to wrap single/empty values in an array
+        if (values.length <= 1) {
+            values = values.length == 1 ? values.pop() : null;
         }
 
         return values;

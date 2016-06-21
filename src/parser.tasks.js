@@ -1,63 +1,62 @@
 export {
-    match,
-    prepend,
-    append,
-    join,
-    replace,
-    parseInt
+    _match as match,
+    _prepend as prepend,
+    _append as append,
+    _split as split,
+    _replace as replace,
+    _parseInt as parseInt
 };
 
-// "task": [ "match", "\\/(\\d+)\\.", 1 ]
-function match(args, value) {
+// 'task': [ 'match', '\\/(\\w+)-(\\d+)', 2 ]
+function _match(args, value) {
     var matches = value.match(new RegExp(args[0]));
     if (matches) {
-        return args[1] ? matches[args[1]] : matches;
+        return args[1] ? matches[args[1]] : matches[1];
     } else {
         return null;
     }
 }
 
-// "task": [ "prepend",  "http://foo.bar/" ]
-function prepend(args, value) {
+// 'task': [ 'prepend',  'http://foo.bar/' ]
+function _prepend(args, value) {
     return args[0] + value;
 }
 
-// "task": [ "append",  "&foo=bar" ]
-function append(args, value) {
+// 'task': [ 'append',  '&foo=bar' ]
+function _append(args, value) {
     return value + args[0];
 }
 
-// "task": [ "join", "http://foo.bar/", "$1" ]
-// "task": [ "join", "$1", "$3", "(foobar)", "$2" ]
-function join(args, value) {
-    var str = '';
-    for (var i = 0; i < args.length; i++) {
-        if (args[i].charAt(0) === '$') {
-            str += value[args[i].substr(1)];
-        } else {
-            str += args[i];
-        }
-    }
-    return str;
+// 'task': [ 'split',  '&foo=bar' ]
+function _split(args, value) {
+    return value.split(args[0]);
 }
 
-// "task": [ "replace",  "foo", "bar" ]
-// "task": [ "replace",  "[\\r\\n\\t\\s]+", "", "regexp" ]
-function replace(args, value) {
-    if (typeof args[0] == 'string' && typeof args[1] == 'string') {
-        args[0] = [ args[0] ];
-        args[1] = [ args[1] ];
+// Replace a with b in c supporting arrays
+// 'task': [ 'replace',  'foo', 'bar' ]
+// 'task': [ 'replace',  [ 'a', 'b' ],  [ 'c', 'e' ] ]
+// 'task': [ 'replace',  '[\\r\\n\\t\\s]+', '', 'regexp' ]
+function _replace(args, value) {
+    let s = args[0]; // search for
+    let r = args[1]; // replace with
+    let re = args[2]; // optional regexp
+    if (typeof s == 'string' && typeof r == 'string') {
+        s = [ s ];
+        r = [ r ];
     }
     var pattern;
-    for (var i = 0; i < args[0].length; i++) {
-        pattern = args[2] && args[2] == 'regexp' ? new RegExp(args[0][i], 'g') : args[0][i];
-        value = value.replace(pattern, args[1][i]);
+    for (let i = 0; i < s.length; i++) {
+        pattern = re == 'regexp' ? new RegExp(s[i], 'g') : s[i];
+        value = value.replace(pattern, r[i]);
     }
     return value;
 }
 
-// "task": [ "parseInt" ]
-function parseInt(args, value) {
+// 'task': [ 'parseInt' ]
+function _parseInt(args, value) {
+    if (typeof value === 'number') {
+        return value;
+    }
     value = value ? value.replace(/[^\d]/g, '') : null;
     return value ? parseInt(value, 10) : null;
 }
