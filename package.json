@@ -4,7 +4,7 @@
   "description": "Crawl and scrape webpages for data using simple json config files",
   "main": "dist/index.js",
   "scripts": {
-    "install": "npm run build",
+    "prepublish": "npm run build",
     "build": "babel src -d dist",
     "watch": "babel --watch src -d dist",
     "example": "babel example/run-src.js -o example/run.js && node ./example/run.js"
