@@ -6,15 +6,16 @@
 import fs from 'fs';
 import URI from 'urijs';
 
-export default { get, _getFiles };
+export default { get, dir };
 
 let _dir = process.env.NODE_CONFIG_DIR || process.cwd() + '/config';
 let _files; // cache
 
-function get(arg, dir) {
-    if (dir) {
-        _dir = dir;
-    }
+function dir(dir) {
+    _dir = dir;
+}
+
+function get(arg) {
     if (Number.isInteger(arg)) {
         return _getById(arg);
     } else if (arg.indexOf('http') !== -1) {
