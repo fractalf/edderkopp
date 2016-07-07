@@ -5,9 +5,9 @@
   "main": "dist/index.js",
   "scripts": {
     "install": "npm run build",
-    "build": "babel src -d dist",
-    "watch": "babel --watch src -d dist",
-    "example": "babel example/run-src.js -o example/run.js && node ./example/run.js"
+    "build": "babel --presets es2015,stage-0 src -d dist",
+    "watch": "babel --presets es2015,stage-0 --watch src -d dist",
+    "example": "babel --presets es2015 example/run-src.js -o example/run.js && node ./example/run.js"
   },
   "repository": {
     "type": "git",
@@ -25,7 +25,6 @@
   },
   "homepage": "https://github.com/fractalf/edderkopp",
   "dependencies": {
-    "bluebird": "^3.4.0",
     "blueimp-md5": "^2.3.0",
     "cheerio": "^0.20.0",
     "request": "^2.72.0",
