@@ -1,7 +1,7 @@
 import URI from 'urijs';
 import cheerio from "cheerio";
 import { logConsole as log } from './log';
-import * as tasks from './parser.tasks';
+import * as tasks from './parser-tasks';
 
 export default class {
 

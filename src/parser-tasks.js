@@ -1,4 +1,6 @@
 export {
+    _js as js,
+    _json as json,
     _match as match,
     _prepend as prepend,
     _append as append,
@@ -7,7 +9,17 @@ export {
     _parseInt as parseInt
 };
 
-// 'task': [ 'match', '\\/(\\w+)-(\\d+)', 2 ]
+// task: 'js'
+function _js(args, value) {
+    return eval(value);
+}
+
+// task: 'json'
+function _json(args, value) {
+    return JSON.parse(value);
+}
+
+// task: [ 'match', '\\/(\\w+)-(\\d+)', 2 ]
 function _match(args, value) {
     var matches = value.match(new RegExp(args[0]));
     if (matches) {
@@ -17,25 +29,25 @@ function _match(args, value) {
     }
 }
 
-// 'task': [ 'prepend',  'http://foo.bar/' ]
+// task: [ 'prepend',  'http://foo.bar/' ]
 function _prepend(args, value) {
     return args[0] + value;
 }
 
-// 'task': [ 'append',  '&foo=bar' ]
+// task: [ 'append',  '&foo=bar' ]
 function _append(args, value) {
     return value + args[0];
 }
 
-// 'task': [ 'split',  '&foo=bar' ]
+// task: [ 'split',  '&foo=bar' ]
 function _split(args, value) {
     return value.split(args[0]);
 }
 
 // Replace a with b in c supporting arrays
-// 'task': [ 'replace',  'foo', 'bar' ]
-// 'task': [ 'replace',  [ 'a', 'b' ],  [ 'c', 'e' ] ]
-// 'task': [ 'replace',  '[\\r\\n\\t\\s]+', '', 'regexp' ]
+// task: [ 'replace',  'foo', 'bar' ]
+// task: [ 'replace',  [ 'a', 'b' ],  [ 'c', 'e' ] ]
+// task: [ 'replace',  '[\\r\\n\\t\\s]+', '', 'regexp' ]
 function _replace(args, value) {
     let s = args[0]; // search for
     let r = args[1]; // replace with
@@ -52,7 +64,7 @@ function _replace(args, value) {
     return value;
 }
 
-// 'task': [ 'parseInt' ]
+// task: 'parseInt'
 function _parseInt(args, value) {
     if (typeof value === 'number') {
         return value;
