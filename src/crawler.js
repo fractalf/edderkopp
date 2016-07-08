@@ -2,7 +2,7 @@ import fs from 'fs';
 import URI from 'urijs';
 import robotsParser from 'robots-parser';
 import Parser from "./parser";
-import { logConsole as log } from './log';
+import log from './log';
 import Queue from './queue';
 import download from "./download";
 import Cache from './cache';

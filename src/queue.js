@@ -1,7 +1,5 @@
-// var log = require('./log');
 
-import log from './log';
-
+// Queue
 export default class {
 
     stack = {

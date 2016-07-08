@@ -1,5 +1,6 @@
 import fs from 'fs';
 
+// WebCache
 export default class {
 
     constructor(file) {

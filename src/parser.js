@@ -1,8 +1,9 @@
 import URI from 'urijs';
 import cheerio from "cheerio";
-import { logConsole as log } from './log';
+import log from './log';
 import * as tasks from './parser-tasks';
 
+// Parser
 export default class {
 
     constructor(html) {
@@ -161,7 +162,7 @@ export default class {
                     }
                     values = tmp;
                 } else {
-                    log.warn('task not exist: ' + name);
+                    log.warn('[parser] Task doesn\'t exist: ' + name);
                 }
             }
         }
@@ -178,7 +179,7 @@ export default class {
     static injectTasks(customTasks) {
         for (var prop in customTasks) {
             if (tasks[prop]) {
-                log.warn('Overriding task: ' + prop);
+                log.warn('[parser] Overriding task: ' + prop);
             }
             tasks[prop] = customTasks[prop];
         }
