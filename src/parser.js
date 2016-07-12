@@ -68,8 +68,10 @@ export default class {
                         this._recParse(rule.kids, data[rule.name], $elem);
                     } else {
                         const values = this._getContent($elem, rule);
-                        // Join values with same name
-                        data[rule.name] = data[rule.name] ? [].concat(data[rule.name], values) : values;
+                        if (values !== null) {
+                            // Join values with same name
+                            data[rule.name] = data[rule.name] ? [].concat(data[rule.name], values) : values;
+                        }
                     }
                 } else if (!optional){
                     log.warn('[parser] Element not found: ' + rule.elem);
@@ -96,9 +98,18 @@ export default class {
                 case 'text':
                     // Get only text nodes
                     // Ex: <span>skip this</span> get this <span>skip this</span>
-                    values.push($(this).contents().filter(function() {
-                        return this.nodeType == 3; // 3 = TEXT_NODE
-                    }).text().trim());
+                    let nodes = [];
+                    $(this).contents().each((i, el) => {
+                        if (el.nodeType == 3) { // 3 = TEXT_NODE
+                            nodes.push(el.data);
+                        }
+                    });
+                    const index = typeof rule.data !== 'string' ? rule.data[1] : false;
+                    if (index) {
+                        values.push(nodes[index].trim());
+                    } else {
+                        values = [].concat(values, nodes);
+                    }
                     break;
                 case 'attr':
                     // Get content from attribute
