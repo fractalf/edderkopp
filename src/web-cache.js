@@ -8,7 +8,18 @@ export default class {
     }
 
     get(url) {
-        if (!this.cache) {
+        this._init();
+        return this.cache[url] ? this.cache[url] : false;
+    }
+
+    set(url, html) {
+        this._init();
+        this.cache[url] = html;
+        fs.writeFileSync(this.file, JSON.stringify(this.cache));
+    }
+
+    _init() {
+        if (this.cache === undefined) {
             try {
                 const f = fs.readFileSync(this.file);
                 this.cache = JSON.parse(f.toString());
@@ -16,12 +27,7 @@ export default class {
                 this.cache = {};
             }
         }
-        return this.cache[url] ? this.cache[url] : false;
-    }
 
-    set(url, html) {
-        this.cache[url] = html;
-        fs.writeFileSync(this.file, JSON.stringify(this.cache));
     }
 
 }

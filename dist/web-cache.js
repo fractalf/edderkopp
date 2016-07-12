@@ -26,7 +26,20 @@ var _class = function () {
     _createClass(_class, [{
         key: 'get',
         value: function get(url) {
-            if (!this.cache) {
+            this._init();
+            return this.cache[url] ? this.cache[url] : false;
+        }
+    }, {
+        key: 'set',
+        value: function set(url, html) {
+            this._init();
+            this.cache[url] = html;
+            _fs2.default.writeFileSync(this.file, JSON.stringify(this.cache));
+        }
+    }, {
+        key: '_init',
+        value: function _init() {
+            if (this.cache === undefined) {
                 try {
                     var f = _fs2.default.readFileSync(this.file);
                     this.cache = JSON.parse(f.toString());
@@ -34,13 +47,6 @@ var _class = function () {
                     this.cache = {};
                 }
             }
-            return this.cache[url] ? this.cache[url] : false;
-        }
-    }, {
-        key: 'set',
-        value: function set(url, html) {
-            this.cache[url] = html;
-            _fs2.default.writeFileSync(this.file, JSON.stringify(this.cache));
         }
     }]);
 
