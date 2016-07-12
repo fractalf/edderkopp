@@ -40,3 +40,4 @@ exports.download = _download2.default;
 exports.Parser = _parser2.default;
 exports.Crawler = _crawler2.default;
 exports.WebCache = _webCache2.default;
+//# sourceMappingURL=index.js.map

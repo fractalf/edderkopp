@@ -287,3 +287,4 @@ var _class = function () {
 }();
 
 exports.default = _class;
+//# sourceMappingURL=crawler.js.map

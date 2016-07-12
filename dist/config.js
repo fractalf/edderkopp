@@ -152,3 +152,4 @@ function _parse(file) {
         return require(file);
     }
 }
+//# sourceMappingURL=config.js.map

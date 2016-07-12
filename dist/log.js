@@ -118,3 +118,4 @@ var Log = function () {
 
 var log = new Log();
 exports.default = log;
+//# sourceMappingURL=log.js.map

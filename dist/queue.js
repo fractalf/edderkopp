@@ -82,3 +82,4 @@ var _class = function () {
 }();
 
 exports.default = _class;
+//# sourceMappingURL=queue.js.map
