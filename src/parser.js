@@ -105,7 +105,7 @@ export default class {
                         }
                     });
                     const index = typeof rule.data !== 'string' ? rule.data[1] : false;
-                    if (index) {
+                    if (index !== false) {
                         values.push(nodes[index].trim());
                     } else {
                         values = [].concat(values, nodes);
