@@ -4,10 +4,9 @@
   "description": "Crawl and scrape webpages for data using simple json config files",
   "main": "dist/index.js",
   "scripts": {
-    "install": "npm run build",
     "build": "babel --presets es2015,stage-0 src -d dist",
     "watch": "babel --presets es2015,stage-0 --watch src -d dist",
-    "example": "babel --presets es2015 example/run-src.js -o example/run.js && node ./example/run.js"
+    "example": "babel-node --presets es2015,stage-0 ./example/run-es6.js"
   },
   "repository": {
     "type": "git",
