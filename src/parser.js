@@ -101,12 +101,15 @@ export default class {
                     let nodes = [];
                     $(this).contents().each((i, el) => {
                         if (el.nodeType == 3) { // 3 = TEXT_NODE
-                            nodes.push(el.data);
+                            let value = el.data.trim();
+                            if (value) {
+                                nodes.push(el.data.trim());
+                            }
                         }
                     });
                     const index = typeof rule.data !== 'string' ? rule.data[1] : false;
                     if (index !== false) {
-                        values.push(nodes[index].trim());
+                        values.push(nodes[index]);
                     } else {
                         values = [].concat(values, nodes);
                     }
