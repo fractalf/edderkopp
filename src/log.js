@@ -3,11 +3,14 @@ import winston from 'winston';
 winston.emitErrs = true;
 
 class Log {
+
+    _level = 'info';
+
     constructor() {
-        this.console = new winston.Logger({
+        this.log = new winston.Logger({
             transports: [
                 new winston.transports.Console({
-                    level: 'info',
+                    level: this._level,
                     handleExceptions: false,
                     json: false,
                     prettyPrint: true,
@@ -16,11 +19,15 @@ class Log {
             ],
             exitOnError: false
         });
-        this.file = new winston.Logger({
+        this._settings = this.log.transports.console;
+    }
+
+    set file(filename) {
+        this.log = new winston.Logger({
             transports: [
                 new winston.transports.File({
-                    level: 'info',
-                    filename: 'error.log',
+                    level: this._level,
+                    filename,
                     zippedArchive: true,
                     tailable : true,
                     handleExceptions: false,
@@ -31,20 +38,7 @@ class Log {
             ],
             exitOnError: false
         });
-        this.log = this.console;
-    }
-
-    set target(target) {
-        if (target == 'console') {
-            this.log = this.console;
-        } else if (target == 'file') {
-            this.log = this.file;
-        }
-    }
-
-    set silent(value) {
-        this.console.transports.console.silent = value;
-        this.file.transports.file.silent = value;
+        this._settings = this.log.transports.file;
     }
 
     /**
@@ -57,8 +51,8 @@ class Log {
      *   error: 5
      */
     set level(level) {
-        this.console.transports.console.level = level;
-        this.file.transports.file.level = level;
+        this._level = level;
+        this._settings.level = level;
     }
 
     // Mapping methods to winston

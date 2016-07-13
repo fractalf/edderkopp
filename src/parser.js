@@ -73,7 +73,7 @@ export default class {
                             data[rule.name] = data[rule.name] ? [].concat(data[rule.name], values) : values;
                         }
                     }
-                } else if (!optional){
+                } else if (!optional) {
                     log.warn('[parser] Element not found: ' + rule.elem);
                 }
             } else if (rule.elem) {

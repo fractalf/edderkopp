@@ -20,9 +20,11 @@ var Log = function () {
     function Log() {
         _classCallCheck(this, Log);
 
-        this.console = new _winston2.default.Logger({
+        this._level = 'info';
+
+        this.log = new _winston2.default.Logger({
             transports: [new _winston2.default.transports.Console({
-                level: 'info',
+                level: this._level,
                 handleExceptions: false,
                 json: false,
                 prettyPrint: true,
@@ -30,20 +32,7 @@ var Log = function () {
             })],
             exitOnError: false
         });
-        this.file = new _winston2.default.Logger({
-            transports: [new _winston2.default.transports.File({
-                level: 'info',
-                filename: 'error.log',
-                zippedArchive: true,
-                tailable: true,
-                handleExceptions: false,
-                json: false,
-                maxsize: 5242880, // 5MB
-                maxFiles: 5
-            })],
-            exitOnError: false
-        });
-        this.log = this.console;
+        this._settings = this.log.transports.console;
     }
 
     _createClass(Log, [{
@@ -80,19 +69,22 @@ var Log = function () {
             this.log.error(msg);
         }
     }, {
-        key: 'target',
-        set: function set(target) {
-            if (target == 'console') {
-                this.log = this.console;
-            } else if (target == 'file') {
-                this.log = this.file;
-            }
-        }
-    }, {
-        key: 'silent',
-        set: function set(value) {
-            this.console.transports.console.silent = value;
-            this.file.transports.file.silent = value;
+        key: 'file',
+        set: function set(filename) {
+            this.log = new _winston2.default.Logger({
+                transports: [new _winston2.default.transports.File({
+                    level: this._level,
+                    filename: filename,
+                    zippedArchive: true,
+                    tailable: true,
+                    handleExceptions: false,
+                    json: false,
+                    maxsize: 5242880, // 5MB
+                    maxFiles: 5
+                })],
+                exitOnError: false
+            });
+            this._settings = this.log.transports.file;
         }
 
         /**
@@ -108,8 +100,8 @@ var Log = function () {
     }, {
         key: 'level',
         set: function set(level) {
-            this.console.transports.console.level = level;
-            this.file.transports.file.level = level;
+            this._level = level;
+            this._settings.level = level;
         }
     }]);
 
