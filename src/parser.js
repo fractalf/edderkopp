@@ -6,6 +6,8 @@ import * as tasks from './parser-tasks';
 // Parser
 export default class {
 
+    includeNull = true; // Keep values=null in dataset
+
     constructor(html) {
         this.$ = cheerio.load(html);
     }
@@ -70,7 +72,7 @@ export default class {
                         data[rule.name] = rule.data[1];
                     } else {
                         const values = this._getContent($elem, rule);
-                        if (values !== null) {
+                        if (values !== null || this.includeNull) {
                             // Join values with same name
                             data[rule.name] = data[rule.name] ? [].concat(data[rule.name], values) : values;
                         }
@@ -88,14 +90,17 @@ export default class {
     // Get values
     _getContent($elem, rule) {
         let $ = this.$;
-        let values = [];
+        let value, values = [];
         const dataType = Array.isArray(rule.data) ? rule.data[0] : rule.data;
         $elem.each(function() {
             switch (dataType) {
                 case 'html':
                     // Get all content including tags
                     // Ex: <p>paragraph 1</p> <p>paragraph 2</p> <p>paragraph 3</p>
-                    values.push($(this).html().trim());
+                    value = $(this).html().trim();
+                    if (value) {
+                        values.push(value);
+                    }
                     break;
                 case 'text':
                     // Get only text nodes
@@ -103,7 +108,7 @@ export default class {
                     let nodes = [];
                     $(this).contents().each((i, el) => {
                         if (el.nodeType == 3) { // 3 = TEXT_NODE
-                            let value = el.data.trim();
+                            value = el.data.trim();
                             if (value) {
                                 nodes.push(el.data.trim());
                             }
@@ -120,9 +125,9 @@ export default class {
                     // Get content from attribute
                     // Ex: <img src="value">, <a href="value">foo</a>
                     for (let i = 1; i < rule.data.length; i++) {
-                        let attr = $(this).attr(rule.data[i]);
-                        if (attr) {
-                            values.push(attr);
+                        value = $(this).attr(rule.data[i]);
+                        if (value) {
+                            values.push(value);
                         } else {
                             log.warn('[parser] Attribute not found: ' + rule.data[i]);
                         }
@@ -132,9 +137,9 @@ export default class {
                     // Get content from data
                     // Ex: <div data-img-a="value" data-img-b="value" data-img-c="value">
                     for (let i = 1; i < rule.data.length; i++) {
-                        let data = $(this).data(rule.data[i]);
-                        if (data) {
-                            values.push(data);
+                        value = $(this).data(rule.data[i]);
+                        if (value) {
+                            values.push(value);
                         } else {
                             log.warn('[parser] Data attribute not found: ' + rule.data[i]);
                         }
@@ -142,12 +147,15 @@ export default class {
                     break;
                 default:
                     // Get only text (strip away tags)
-                    values.push($(this).text().trim());
+                    value = $(this).text().trim();
+                    if (value) {
+                        values.push(value);
+                    }
             }
         });
 
         // Run tasks on values
-        if (rule.task) {
+        if (rule.task && values.length) {
             let task;
             if (typeof rule.task == 'string') {
                 // "task": "foobar"

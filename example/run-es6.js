@@ -7,5 +7,6 @@ import { log, config, Parser } from "../dist";
 const conf = config.get(__dirname + '/site.json');
 const html = fs.readFileSync(__dirname + '/site.html').toString();
 const parser = new Parser(html);
+// parser.includeNull = false;
 const data = parser.getData(conf.pages.somePage);
 log.info(data);

@@ -31,8 +31,12 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 // Parser
 
 var _class = function () {
+    // Keep values=null in dataset
+
     function _class(html) {
         _classCallCheck(this, _class);
+
+        this.includeNull = true;
 
         this.$ = _cheerio2.default.load(html);
     }
@@ -107,7 +111,7 @@ var _class = function () {
                             data[rule.name] = rule.data[1];
                         } else {
                             var values = _this._getContent($elem, rule);
-                            if (values !== null) {
+                            if (values !== null || _this.includeNull) {
                                 // Join values with same name
                                 data[rule.name] = data[rule.name] ? [].concat(data[rule.name], values) : values;
                             }
@@ -132,14 +136,18 @@ var _class = function () {
         key: '_getContent',
         value: function _getContent($elem, rule) {
             var $ = this.$;
-            var values = [];
+            var value = void 0,
+                values = [];
             var dataType = Array.isArray(rule.data) ? rule.data[0] : rule.data;
             $elem.each(function () {
                 switch (dataType) {
                     case 'html':
                         // Get all content including tags
                         // Ex: <p>paragraph 1</p> <p>paragraph 2</p> <p>paragraph 3</p>
-                        values.push($(this).html().trim());
+                        value = $(this).html().trim();
+                        if (value) {
+                            values.push(value);
+                        }
                         break;
                     case 'text':
                         // Get only text nodes
@@ -148,7 +156,7 @@ var _class = function () {
                         $(this).contents().each(function (i, el) {
                             if (el.nodeType == 3) {
                                 // 3 = TEXT_NODE
-                                var value = el.data.trim();
+                                value = el.data.trim();
                                 if (value) {
                                     nodes.push(el.data.trim());
                                 }
@@ -165,9 +173,9 @@ var _class = function () {
                         // Get content from attribute
                         // Ex: <img src="value">, <a href="value">foo</a>
                         for (var i = 1; i < rule.data.length; i++) {
-                            var attr = $(this).attr(rule.data[i]);
-                            if (attr) {
-                                values.push(attr);
+                            value = $(this).attr(rule.data[i]);
+                            if (value) {
+                                values.push(value);
                             } else {
                                 _log2.default.warn('[parser] Attribute not found: ' + rule.data[i]);
                             }
@@ -177,9 +185,9 @@ var _class = function () {
                         // Get content from data
                         // Ex: <div data-img-a="value" data-img-b="value" data-img-c="value">
                         for (var _i = 1; _i < rule.data.length; _i++) {
-                            var data = $(this).data(rule.data[_i]);
-                            if (data) {
-                                values.push(data);
+                            value = $(this).data(rule.data[_i]);
+                            if (value) {
+                                values.push(value);
                             } else {
                                 _log2.default.warn('[parser] Data attribute not found: ' + rule.data[_i]);
                             }
@@ -187,12 +195,15 @@ var _class = function () {
                         break;
                     default:
                         // Get only text (strip away tags)
-                        values.push($(this).text().trim());
+                        value = $(this).text().trim();
+                        if (value) {
+                            values.push(value);
+                        }
                 }
             });
 
             // Run tasks on values
-            if (rule.task) {
+            if (rule.task && values.length) {
                 var task = void 0;
                 if (typeof rule.task == 'string') {
                     // "task": "foobar"
@@ -226,9 +237,9 @@ var _class = function () {
 
                             try {
                                 for (var _iterator2 = values[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-                                    var value = _step2.value;
+                                    var _value = _step2.value;
 
-                                    var res = tasks[name](args, value);
+                                    var res = tasks[name](args, _value);
                                     if (Array.isArray(res)) {
                                         tmp = tmp.concat(res);
                                     } else if (res) {

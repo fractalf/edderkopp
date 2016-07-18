@@ -37,6 +37,10 @@
                         "elem": ".short"
                     },
                     {
+                        "name": "null",
+                        "elem": ".null"
+                    },
+                    {
                         "name": "constant",
                         "data": [ "constant", "Some constant value" ]
                     },
