@@ -37,6 +37,10 @@
                         "elem": ".short"
                     },
                     {
+                        "name": "constant",
+                        "data": [ "constant", "Some constant value" ]
+                    },
+                    {
                         "elem": ".wrapper",
                         "kids": [
                             {

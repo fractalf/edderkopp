@@ -66,6 +66,8 @@ export default class {
                     } else if (rule.data == 'object') {
                         data[rule.name] = {};
                         this._recParse(rule.kids, data[rule.name], $elem);
+                    } else if (rule.data && rule.data[0] == 'constant') {
+                        data[rule.name] = rule.data[1];
                     } else {
                         const values = this._getContent($elem, rule);
                         if (values !== null) {
