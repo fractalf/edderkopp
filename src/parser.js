@@ -1,7 +1,6 @@
-import URI from 'urijs';
 import cheerio from "cheerio";
 import log from './log';
-import * as tasks from './parser-tasks';
+import * as parserTasks from './parser-tasks';
 
 // Parser
 export default class {
@@ -9,38 +8,83 @@ export default class {
     includeNull = true; // Keep values=null in dataset
 
     constructor(html) {
-        this.$ = cheerio.load(html);
+        if (html) {
+            this._load(html);
+        }
+    }
+
+    get html() {
+        return this._html;
+    }
+
+    set html(html) {
+        this._load(html);
+    }
+
+    _load(html) {
+        this._html = html;
+        this._$ = cheerio.load(html);
+    }
+
+    find(selector) {
+        let $ = this._$;
+        return !!$(selector).length
     }
 
     getData(rules) {
         return this._recParse(rules);
     }
 
-    getLinks(skipClasses) {
-        let $ = this.$;
 
+    getLinks(follow = [ { elem: 'a' } ], skip = []) {
+        let $ = this._$;
         let links = [];
 
-        // Build selector
-        let selector = 'a[rel!=nofollow]';
-        if (skipClasses) {
-            selector += ':not(' + skipClasses.join(',') + ')';
+        // Handle follow
+        if (!Array.isArray(follow)) {
+            follow = [ follow ];
         }
 
-        // Find and handle elements
-        $(selector).each((i, elem) => {
-            let url = $(elem).attr('href');
-            url = typeof url === 'string' ? url.trim() : false;
-            if (url) {
-                links.push(url);
+        // Handle skip
+        skip.push('a[rel=nofollow]');
+
+        for (let i = 0; i < follow.length; i++) {
+            let f = follow[i];
+            // Convert "shortcut" for regexp match to proper task
+            // link: [ '<regexp>', .. ]
+            if (typeof f === 'string') {
+                f = { task: [ 'match', f ] };
             }
-        });
+            if (!f.elem) {
+                f.elem = 'a';
+            }
+
+            // Handle skip => add :not(<skip>) to selectors
+            let selector =  f.elem.split(',');
+            for (let j = 0; j < selector.length; j++) {
+                selector[j] += ':not(' + skip.join(',') + ')';
+            }
+            selector = selector.join(',');
+
+            // Find stuff
+            $(selector).each((i, elem) => {
+                let url = $(elem).attr('href').trim();
+                if (url && f.task) {
+                    url = this._runTasks(f.task, url);
+                }
+                if (url) {
+                    links.push(url);
+                }
+            });
+
+        }
+
         return links;
     }
 
     // Recursively parse DOM
     _recParse(rules, data, $container) {
-        let $ = this.$;
+        let $ = this._$;
         data = data || {};
         for (let i = 0; i < rules.length; i++) {
             const rule = rules[i];
@@ -89,7 +133,7 @@ export default class {
 
     // Get values
     _getContent($elem, rule) {
-        let $ = this.$;
+        let $ = this._$;
         let value, values = [];
         const dataType = Array.isArray(rule.data) ? rule.data[0] : rule.data;
         $elem.each(function() {
@@ -156,39 +200,7 @@ export default class {
 
         // Run tasks on values
         if (rule.task && values.length) {
-            let task;
-            if (typeof rule.task == 'string') {
-                // "task": "foobar"
-                task = [ [ rule.task ] ];
-            } else if (!Array.isArray(rule.task[0])) {
-                // "task": [ "foobar", "arg1", "arg2" ]
-                task = [ rule.task ];
-            } else {
-                // "task": [
-                //     [ "foobar1", "arg1", "arg2" ],
-                //     [ "foobar2", "arg1", "arg2" ]
-                //  ]
-                task = rule.task;
-            }
-
-            for (let t of task) {
-                let name = t[0];
-                if (tasks[name]) {
-                    let args = t.slice(1);
-                    let tmp = [];
-                    for (let value of values) {
-                        let res = tasks[name](args, value);
-                        if (Array.isArray(res)) {
-                            tmp = tmp.concat(res);
-                        } else if (res) {
-                            tmp.push(res);
-                        }
-                    }
-                    values = tmp;
-                } else {
-                    log.warn('[parser] Task doesn\'t exist: ' + name);
-                }
-            }
+            values = this._runTasks(rule.task, values);
         }
 
         // No need to wrap single/empty values in an array
@@ -199,13 +211,56 @@ export default class {
         return values;
     }
 
+    _runTasks(tasks, values) {
+        // Code handles multiple values
+        if (typeof values == 'string') {
+            values = [ values ];
+        }
+
+        // Rewrite different task formats to:
+        // "task": [
+        //     [ "foobar1", "arg1a", "arg1b" ],
+        //     [ "foobar2", "arg2a", "arg2b" ]
+        //  ]
+        if (typeof tasks == 'string') { // "task": "foobar"
+            tasks = [ [ tasks ] ];
+        } else if (!Array.isArray(tasks[0])) { // "task": [ "foobar", "arg1", "arg2" ]
+            tasks = [ tasks ];
+        }
+
+        // Run tasks and pipe result from one to the next
+        for (let task of tasks) {
+            let name = task[0];
+            if (parserTasks[name]) {
+                let args = task.slice(1);
+                let tmp = [];
+                for (let value of values) {
+                    let res = parserTasks[name](args, value);
+                    if (res) {
+                        tmp = tmp.concat(res);
+                    }
+                }
+                values = tmp;
+                if (!values.length) {
+                    break;
+                }
+            } else {
+                log.warn('[parser] Task doesn\'t exist: ' + name);
+            }
+        }
+        if (values.length <= 1) {
+            values = values.length == 1 ? values.pop() : null;
+        }
+        return values;
+    }
+
     // Support custom tasks
     static injectTasks(customTasks) {
         for (var prop in customTasks) {
-            if (tasks[prop]) {
+            if (parserTasks[prop]) {
                 log.warn('[parser] Overriding task: ' + prop);
             }
-            tasks[prop] = customTasks[prop];
+            parserTasks[prop] = customTasks[prop];
         }
     }
 }

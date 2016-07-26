@@ -1,4 +1,5 @@
 import winston from 'winston';
+import util from 'util';
 
 winston.emitErrs = true;
 
@@ -20,6 +21,13 @@ class Log {
             exitOnError: false
         });
         this._settings = this.log.transports.console;
+
+        // Mapping methods to winston and support util.format('a %s c', 'b')
+        [ 'silly', 'debug', 'verbose', 'info', 'warn', 'error' ].forEach((func) => {
+            this[func] = (...arg) => {
+                this.log[func](arg[1] !== undefined ? util.format.apply(null, arg) : arg[0]);
+            }
+        })
     }
 
     set file(filename) {
@@ -55,13 +63,6 @@ class Log {
         this._settings.level = level;
     }
 
-    // Mapping methods to winston
-    silly(msg) { this.log.silly(msg); }
-    debug(msg) { this.log.debug(msg); }
-    verbose(msg) { this.log.verbose(msg); }
-    info(msg) { this.log.info(msg); }
-    warn(msg) { this.log.warn(msg); }
-    error(msg) { this.log.error(msg); }
 }
 
 const log = new Log();

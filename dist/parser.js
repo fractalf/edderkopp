@@ -4,11 +4,17 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _getIterator2 = require('babel-runtime/core-js/get-iterator');
 
-var _urijs = require('urijs');
+var _getIterator3 = _interopRequireDefault(_getIterator2);
 
-var _urijs2 = _interopRequireDefault(_urijs);
+var _classCallCheck2 = require('babel-runtime/helpers/classCallCheck');
+
+var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
+
+var _createClass2 = require('babel-runtime/helpers/createClass');
+
+var _createClass3 = _interopRequireDefault(_createClass2);
 
 var _cheerio = require('cheerio');
 
@@ -20,13 +26,11 @@ var _log2 = _interopRequireDefault(_log);
 
 var _parserTasks = require('./parser-tasks');
 
-var tasks = _interopRequireWildcard(_parserTasks);
+var parserTasks = _interopRequireWildcard(_parserTasks);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 // Parser
 
@@ -34,39 +38,84 @@ var _class = function () {
     // Keep values=null in dataset
 
     function _class(html) {
-        _classCallCheck(this, _class);
-
+        (0, _classCallCheck3.default)(this, _class);
         this.includeNull = true;
 
-        this.$ = _cheerio2.default.load(html);
+        if (html) {
+            this._load(html);
+        }
     }
 
-    _createClass(_class, [{
+    (0, _createClass3.default)(_class, [{
+        key: '_load',
+        value: function _load(html) {
+            this._html = html;
+            this._$ = _cheerio2.default.load(html);
+        }
+    }, {
+        key: 'find',
+        value: function find(selector) {
+            var $ = this._$;
+            return !!$(selector).length;
+        }
+    }, {
         key: 'getData',
         value: function getData(rules) {
             return this._recParse(rules);
         }
     }, {
         key: 'getLinks',
-        value: function getLinks(skipClasses) {
-            var $ = this.$;
+        value: function getLinks() {
+            var _this = this;
 
+            var follow = arguments.length <= 0 || arguments[0] === undefined ? [{ elem: 'a' }] : arguments[0];
+            var skip = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
+
+            var $ = this._$;
             var links = [];
 
-            // Build selector
-            var selector = 'a[rel!=nofollow]';
-            if (skipClasses) {
-                selector += ':not(' + skipClasses.join(',') + ')';
+            // Handle follow
+            if (!Array.isArray(follow)) {
+                follow = [follow];
             }
 
-            // Find and handle elements
-            $(selector).each(function (i, elem) {
-                var url = $(elem).attr('href');
-                url = typeof url === 'string' ? url.trim() : false;
-                if (url) {
-                    links.push(url);
+            // Handle skip
+            skip.push('a[rel=nofollow]');
+
+            var _loop = function _loop(i) {
+                var f = follow[i];
+                // Convert "shortcut" for regexp match to proper task
+                // link: [ '<regexp>', .. ]
+                if (typeof f === 'string') {
+                    f = { task: ['match', f] };
                 }
-            });
+                if (!f.elem) {
+                    f.elem = 'a';
+                }
+
+                // Handle skip => add :not(<skip>) to selectors
+                var selector = f.elem.split(',');
+                for (var j = 0; j < selector.length; j++) {
+                    selector[j] += ':not(' + skip.join(',') + ')';
+                }
+                selector = selector.join(',');
+
+                // Find stuff
+                $(selector).each(function (i, elem) {
+                    var url = $(elem).attr('href').trim();
+                    if (url && f.task) {
+                        url = _this._runTasks(f.task, url);
+                    }
+                    if (url) {
+                        links.push(url);
+                    }
+                });
+            };
+
+            for (var i = 0; i < follow.length; i++) {
+                _loop(i);
+            }
+
             return links;
         }
 
@@ -75,12 +124,12 @@ var _class = function () {
     }, {
         key: '_recParse',
         value: function _recParse(rules, data, $container) {
-            var _this = this;
+            var _this2 = this;
 
-            var $ = this.$;
+            var $ = this._$;
             data = data || {};
 
-            var _loop = function _loop(i) {
+            var _loop2 = function _loop2(i) {
                 var rule = rules[i];
                 if (rule.name) {
                     // const $elem = rule.elem ? $(rule.elem, $container) : $container;
@@ -102,16 +151,16 @@ var _class = function () {
                             $elem.each(function (i, e) {
                                 var obj = {};
                                 data[rule.name].push(obj);
-                                _this._recParse(rule.kids, obj, $(e));
+                                _this2._recParse(rule.kids, obj, $(e));
                             });
                         } else if (rule.data == 'object') {
                             data[rule.name] = {};
-                            _this._recParse(rule.kids, data[rule.name], $elem);
+                            _this2._recParse(rule.kids, data[rule.name], $elem);
                         } else if (rule.data && rule.data[0] == 'constant') {
                             data[rule.name] = rule.data[1];
                         } else {
-                            var values = _this._getContent($elem, rule);
-                            if (values !== null || _this.includeNull) {
+                            var values = _this2._getContent($elem, rule);
+                            if (values !== null || _this2.includeNull) {
                                 // Join values with same name
                                 data[rule.name] = data[rule.name] ? [].concat(data[rule.name], values) : values;
                             }
@@ -120,12 +169,12 @@ var _class = function () {
                         _log2.default.warn('[parser] Element not found: ' + rule.elem);
                     }
                 } else if (rule.elem) {
-                    _this._recParse(rule.kids, data, $(rule.elem, $container));
+                    _this2._recParse(rule.kids, data, $(rule.elem, $container));
                 }
             };
 
             for (var i = 0; i < rules.length; i++) {
-                _loop(i);
+                _loop2(i);
             }
             return data;
         }
@@ -135,7 +184,7 @@ var _class = function () {
     }, {
         key: '_getContent',
         value: function _getContent($elem, rule) {
-            var $ = this.$;
+            var $ = this._$;
             var value = void 0,
                 values = [];
             var dataType = Array.isArray(rule.data) ? rule.data[0] : rule.data;
@@ -204,82 +253,7 @@ var _class = function () {
 
             // Run tasks on values
             if (rule.task && values.length) {
-                var task = void 0;
-                if (typeof rule.task == 'string') {
-                    // "task": "foobar"
-                    task = [[rule.task]];
-                } else if (!Array.isArray(rule.task[0])) {
-                    // "task": [ "foobar", "arg1", "arg2" ]
-                    task = [rule.task];
-                } else {
-                    // "task": [
-                    //     [ "foobar1", "arg1", "arg2" ],
-                    //     [ "foobar2", "arg1", "arg2" ]
-                    //  ]
-                    task = rule.task;
-                }
-
-                var _iteratorNormalCompletion = true;
-                var _didIteratorError = false;
-                var _iteratorError = undefined;
-
-                try {
-                    for (var _iterator = task[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                        var t = _step.value;
-
-                        var name = t[0];
-                        if (tasks[name]) {
-                            var args = t.slice(1);
-                            var tmp = [];
-                            var _iteratorNormalCompletion2 = true;
-                            var _didIteratorError2 = false;
-                            var _iteratorError2 = undefined;
-
-                            try {
-                                for (var _iterator2 = values[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-                                    var _value = _step2.value;
-
-                                    var res = tasks[name](args, _value);
-                                    if (Array.isArray(res)) {
-                                        tmp = tmp.concat(res);
-                                    } else if (res) {
-                                        tmp.push(res);
-                                    }
-                                }
-                            } catch (err) {
-                                _didIteratorError2 = true;
-                                _iteratorError2 = err;
-                            } finally {
-                                try {
-                                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
-                                        _iterator2.return();
-                                    }
-                                } finally {
-                                    if (_didIteratorError2) {
-                                        throw _iteratorError2;
-                                    }
-                                }
-                            }
-
-                            values = tmp;
-                        } else {
-                            _log2.default.warn('[parser] Task doesn\'t exist: ' + name);
-                        }
-                    }
-                } catch (err) {
-                    _didIteratorError = true;
-                    _iteratorError = err;
-                } finally {
-                    try {
-                        if (!_iteratorNormalCompletion && _iterator.return) {
-                            _iterator.return();
-                        }
-                    } finally {
-                        if (_didIteratorError) {
-                            throw _iteratorError;
-                        }
-                    }
-                }
+                values = this._runTasks(rule.task, values);
             }
 
             // No need to wrap single/empty values in an array
@@ -289,21 +263,118 @@ var _class = function () {
 
             return values;
         }
+    }, {
+        key: '_runTasks',
+        value: function _runTasks(tasks, values) {
+            // Code handles multiple values
+            if (typeof values == 'string') {
+                values = [values];
+            }
+
+            // Rewrite different task formats to:
+            // "task": [
+            //     [ "foobar1", "arg1a", "arg1b" ],
+            //     [ "foobar2", "arg2a", "arg2b" ]
+            //  ]
+            if (typeof tasks == 'string') {
+                // "task": "foobar"
+                tasks = [[tasks]];
+            } else if (!Array.isArray(tasks[0])) {
+                // "task": [ "foobar", "arg1", "arg2" ]
+                tasks = [tasks];
+            }
+
+            // Run tasks and pipe result from one to the next
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
+            try {
+                for (var _iterator = (0, _getIterator3.default)(tasks), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    var task = _step.value;
+
+                    var name = task[0];
+                    if (parserTasks[name]) {
+                        var args = task.slice(1);
+                        var tmp = [];
+                        var _iteratorNormalCompletion2 = true;
+                        var _didIteratorError2 = false;
+                        var _iteratorError2 = undefined;
+
+                        try {
+                            for (var _iterator2 = (0, _getIterator3.default)(values), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                                var value = _step2.value;
+
+                                var res = parserTasks[name](args, value);
+                                if (res) {
+                                    tmp = tmp.concat(res);
+                                }
+                            }
+                        } catch (err) {
+                            _didIteratorError2 = true;
+                            _iteratorError2 = err;
+                        } finally {
+                            try {
+                                if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                                    _iterator2.return();
+                                }
+                            } finally {
+                                if (_didIteratorError2) {
+                                    throw _iteratorError2;
+                                }
+                            }
+                        }
+
+                        values = tmp;
+                        if (!values.length) {
+                            break;
+                        }
+                    } else {
+                        _log2.default.warn('[parser] Task doesn\'t exist: ' + name);
+                    }
+                }
+            } catch (err) {
+                _didIteratorError = true;
+                _iteratorError = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion && _iterator.return) {
+                        _iterator.return();
+                    }
+                } finally {
+                    if (_didIteratorError) {
+                        throw _iteratorError;
+                    }
+                }
+            }
+
+            if (values.length <= 1) {
+                values = values.length == 1 ? values.pop() : null;
+            }
+            return values;
+        }
 
         // Support custom tasks
 
+    }, {
+        key: 'html',
+        get: function get() {
+            return this._html;
+        },
+        set: function set(html) {
+            this._load(html);
+        }
     }], [{
         key: 'injectTasks',
         value: function injectTasks(customTasks) {
             for (var prop in customTasks) {
-                if (tasks[prop]) {
+                if (parserTasks[prop]) {
                     _log2.default.warn('[parser] Overriding task: ' + prop);
                 }
-                tasks[prop] = customTasks[prop];
+                parserTasks[prop] = customTasks[prop];
             }
         }
     }]);
-
     return _class;
 }();
 

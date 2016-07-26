@@ -23,11 +23,12 @@ function _json(args, value) {
     return JSON.parse(value);
 }
 
-// task: [ 'match', '\\/(\\w+)-(\\d+)', 2 ]
+// task: [ 'match', '\\/(\\w+)-(\\d+)' ] => returns value or null
+// task: [ 'match', '\\/(\\w+)-(\\d+)', 2 ] => returns matches[2] or null
 function _match(args, value) {
     var matches = value.match(new RegExp(args[0]));
     if (matches) {
-        return args[1] ? matches[args[1]] : matches[1];
+        return args[1] === undefined ? value : matches[args[1]];
     } else {
         return null;
     }

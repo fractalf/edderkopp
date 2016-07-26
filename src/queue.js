@@ -2,22 +2,24 @@
 // Queue
 export default class {
 
-    stack = {
-        add: [],
-        get: []
-    }
-    maxItems = Number.MAX_VALUE;
-    maxDepth = Number.MAX_VALUE;
-    depth = 0;
-    items = 0;
-
-    constructor(maxItems, maxDepth) {
-        if (maxItems) { this.maxItems = maxItems; }
-        if (maxDepth) { this.maxDepth = maxDepth; }
+    constructor(options = {}) {
+        this.maxItems = options.maxItems !== undefined ? options.maxItems : Number.MAX_VALUE;
+        this.maxDepth = options.maxDepth !== undefined ? options.maxDepth : Number.MAX_VALUE;
+        this.init();
     }
 
-    isEmpty() {
-        return this.stack.add.length == 0 && this.stack.get.length == 0;
+    init() {
+        this._stack = { add: [], get: [] };
+        this._depth = 0;
+        this._items = 0;
+    }
+
+    get empty() {
+        return this._stack.add.length == 0 && this._stack.get.length == 0;
+    }
+
+    get depth() {
+        return this._depth;
     }
 
     add(items) {
@@ -25,9 +27,9 @@ export default class {
             items = [ items ];
         }
         for (let i = 0; i < items.length; i++) {
-            if (this.items < this.maxItems) {
-                this.stack.add.push(items[i]);
-                this.items++
+            if (this._items < this.maxItems) {
+                this._stack.add.push(items[i]);
+                this._items++
             } else {
                 // Reached max items, don't add more
                 break;
@@ -36,15 +38,15 @@ export default class {
     }
 
     get() {
-        if (this.stack.get.length) {
-            return this.stack.get.pop();
+        if (this._stack.get.length) {
+            return this._stack.get.pop();
         } else {
-            if (this.stack.add.length) {
-                if (this.depth < this.maxDepth) {
-                    this.stack.get = this.stack.add;
-                    this.stack.add = [];
-                    this.depth++;
-                    return this.stack.get.pop();
+            if (this._stack.add.length) {
+                if (this._depth < this.maxDepth) {
+                    this._stack.get = this._stack.add;
+                    this._stack.add = [];
+                    this._depth++;
+                    return this._stack.get.pop();
                 } else {
                     // Reached max depth
                     // console.log('Max depth!');

@@ -4,13 +4,21 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _getIterator2 = require('babel-runtime/core-js/get-iterator');
+
+var _getIterator3 = _interopRequireDefault(_getIterator2);
+
+var _isInteger = require('babel-runtime/core-js/number/is-integer');
+
+var _isInteger2 = _interopRequireDefault(_isInteger);
+
 var _fs = require('fs');
 
 var _fs2 = _interopRequireDefault(_fs);
 
-var _urijs = require('urijs');
+var _url = require('url');
 
-var _urijs2 = _interopRequireDefault(_urijs);
+var _url2 = _interopRequireDefault(_url);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -30,7 +38,7 @@ function dir(dir) {
 }
 
 function get(arg) {
-    if (Number.isInteger(arg)) {
+    if ((0, _isInteger2.default)(arg)) {
         return _getById(arg);
     } else if (arg.indexOf('http') !== -1) {
         return _getByUrl(arg);
@@ -49,7 +57,7 @@ function _getFiles(dir) {
     var _iteratorError = undefined;
 
     try {
-        for (var _iterator = _fs2.default.readdirSync(dir)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+        for (var _iterator = (0, _getIterator3.default)(_fs2.default.readdirSync(dir)), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
             var file = _step.value;
 
             if (_fs2.default.statSync(dir + '/' + file).isDirectory()) {
@@ -84,7 +92,7 @@ function _getById(id) {
     var _iteratorError2 = undefined;
 
     try {
-        for (var _iterator2 = _files[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+        for (var _iterator2 = (0, _getIterator3.default)(_files), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
             var file = _step2.value;
 
             var match = file.match(/-(\d+)\./);
@@ -112,17 +120,17 @@ function _getById(id) {
 
 function _getByUrl(url) {
     _files = _files || _getFiles(_dir);
-    var hostname = (0, _urijs2.default)(url).hostname();
+    var hostname = _url2.default.parse(url).hostname;
     var _iteratorNormalCompletion3 = true;
     var _didIteratorError3 = false;
     var _iteratorError3 = undefined;
 
     try {
-        for (var _iterator3 = _files[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+        for (var _iterator3 = (0, _getIterator3.default)(_files), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
             var file = _step3.value;
 
             var config = _parse(file);
-            if (hostname == (0, _urijs2.default)(config.url.entry).hostname()) {
+            if (hostname == _url2.default.parse(config.url.entry).hostname) {
                 return config;
             }
         }

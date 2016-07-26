@@ -4,7 +4,7 @@
  */
 
 import fs from 'fs';
-import URI from 'urijs';
+import u from 'url';
 
 export default { get, dir };
 
@@ -53,10 +53,10 @@ function _getById(id) {
 
 function _getByUrl(url) {
     _files = _files || _getFiles(_dir);
-    let hostname = URI(url).hostname();
+    let hostname = u.parse(url).hostname;
     for (let file of _files) {
         let config = _parse(file);
-        if (hostname == URI(config.url.entry).hostname()) {
+        if (hostname == u.parse(config.url.entry).hostname) {
             return config;
         }
     }

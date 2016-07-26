@@ -9,12 +9,12 @@ export default class {
 
     get(url) {
         this._init();
-        return this.cache[url] ? this.cache[url] : false;
+        return this.cache[url] !== undefined ? this.cache[url] : false;
     }
 
-    set(url, html) {
+    set(url, value) {
         this._init();
-        this.cache[url] = html;
+        this.cache[url] = value;
         fs.writeFileSync(this.file, JSON.stringify(this.cache));
     }
 
@@ -27,7 +27,5 @@ export default class {
                 this.cache = {};
             }
         }
-
     }
-
 }

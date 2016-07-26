@@ -2,14 +2,20 @@ import md5 from 'blueimp-md5';
 
 export default class {
 
-    items = {};
+    constructor() {
+        this.init();
+    }
+
+    init() {
+        this._items = {};
+    }
 
     has(item) {
-        return this.items[md5(item)];
+        return this._items[md5(item)];
     }
 
     set(item) {
-        this.items[md5(item)] = true;
+        this._items[md5(item)] = true;
     }
 
 }

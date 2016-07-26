@@ -4,37 +4,34 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _classCallCheck2 = require("babel-runtime/helpers/classCallCheck");
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
+
+var _createClass2 = require("babel-runtime/helpers/createClass");
+
+var _createClass3 = _interopRequireDefault(_createClass2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // Queue
 
 var _class = function () {
-    function _class(maxItems, maxDepth) {
-        _classCallCheck(this, _class);
+    function _class() {
+        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+        (0, _classCallCheck3.default)(this, _class);
 
-        this.stack = {
-            add: [],
-            get: []
-        };
-        this.maxItems = Number.MAX_VALUE;
-        this.maxDepth = Number.MAX_VALUE;
-        this.depth = 0;
-        this.items = 0;
-
-        if (maxItems) {
-            this.maxItems = maxItems;
-        }
-        if (maxDepth) {
-            this.maxDepth = maxDepth;
-        }
+        this.maxItems = options.maxItems !== undefined ? options.maxItems : Number.MAX_VALUE;
+        this.maxDepth = options.maxDepth !== undefined ? options.maxDepth : Number.MAX_VALUE;
+        this.init();
     }
 
-    _createClass(_class, [{
-        key: "isEmpty",
-        value: function isEmpty() {
-            return this.stack.add.length == 0 && this.stack.get.length == 0;
+    (0, _createClass3.default)(_class, [{
+        key: "init",
+        value: function init() {
+            this._stack = { add: [], get: [] };
+            this._depth = 0;
+            this._items = 0;
         }
     }, {
         key: "add",
@@ -43,9 +40,9 @@ var _class = function () {
                 items = [items];
             }
             for (var i = 0; i < items.length; i++) {
-                if (this.items < this.maxItems) {
-                    this.stack.add.push(items[i]);
-                    this.items++;
+                if (this._items < this.maxItems) {
+                    this._stack.add.push(items[i]);
+                    this._items++;
                 } else {
                     // Reached max items, don't add more
                     break;
@@ -55,15 +52,15 @@ var _class = function () {
     }, {
         key: "get",
         value: function get() {
-            if (this.stack.get.length) {
-                return this.stack.get.pop();
+            if (this._stack.get.length) {
+                return this._stack.get.pop();
             } else {
-                if (this.stack.add.length) {
-                    if (this.depth < this.maxDepth) {
-                        this.stack.get = this.stack.add;
-                        this.stack.add = [];
-                        this.depth++;
-                        return this.stack.get.pop();
+                if (this._stack.add.length) {
+                    if (this._depth < this.maxDepth) {
+                        this._stack.get = this._stack.add;
+                        this._stack.add = [];
+                        this._depth++;
+                        return this._stack.get.pop();
                     } else {
                         // Reached max depth
                         // console.log('Max depth!');
@@ -76,8 +73,17 @@ var _class = function () {
                 }
             }
         }
+    }, {
+        key: "empty",
+        get: function get() {
+            return this._stack.add.length == 0 && this._stack.get.length == 0;
+        }
+    }, {
+        key: "depth",
+        get: function get() {
+            return this._depth;
+        }
     }]);
-
     return _class;
 }();
 

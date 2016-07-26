@@ -4,35 +4,77 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _getIterator2 = require('babel-runtime/core-js/get-iterator');
+
+var _getIterator3 = _interopRequireDefault(_getIterator2);
+
+var _promise = require('babel-runtime/core-js/promise');
+
+var _promise2 = _interopRequireDefault(_promise);
+
+var _regenerator = require('babel-runtime/regenerator');
+
+var _regenerator2 = _interopRequireDefault(_regenerator);
+
+var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
+
+var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
+
+var _getPrototypeOf = require('babel-runtime/core-js/object/get-prototype-of');
+
+var _getPrototypeOf2 = _interopRequireDefault(_getPrototypeOf);
+
+var _classCallCheck2 = require('babel-runtime/helpers/classCallCheck');
+
+var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
+
+var _createClass2 = require('babel-runtime/helpers/createClass');
+
+var _createClass3 = _interopRequireDefault(_createClass2);
+
+var _possibleConstructorReturn2 = require('babel-runtime/helpers/possibleConstructorReturn');
+
+var _possibleConstructorReturn3 = _interopRequireDefault(_possibleConstructorReturn2);
+
+var _inherits2 = require('babel-runtime/helpers/inherits');
+
+var _inherits3 = _interopRequireDefault(_inherits2);
+
+var _events = require('events');
+
+var _events2 = _interopRequireDefault(_events);
 
 var _fs = require('fs');
 
 var _fs2 = _interopRequireDefault(_fs);
 
-var _urijs = require('urijs');
+var _url2 = require('url');
 
-var _urijs2 = _interopRequireDefault(_urijs);
+var _url3 = _interopRequireDefault(_url2);
 
 var _robotsParser = require('robots-parser');
 
 var _robotsParser2 = _interopRequireDefault(_robotsParser);
 
-var _parser = require('./parser');
-
-var _parser2 = _interopRequireDefault(_parser);
-
 var _log = require('./log');
 
 var _log2 = _interopRequireDefault(_log);
+
+var _download = require('./download');
+
+var _download2 = _interopRequireDefault(_download);
+
+var _parser = require('./parser');
+
+var _parser2 = _interopRequireDefault(_parser);
 
 var _queue = require('./queue');
 
 var _queue2 = _interopRequireDefault(_queue);
 
-var _download = require('./download');
+var _webCache = require('./web-cache');
 
-var _download2 = _interopRequireDefault(_download);
+var _webCache2 = _interopRequireDefault(_webCache);
 
 var _cache = require('./cache');
 
@@ -40,228 +82,393 @@ var _cache2 = _interopRequireDefault(_cache);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+// Crawler
 
-var _class = function () {
-    function _class(conf) {
-        _classCallCheck(this, _class);
+var _class = function (_EventEmitter) {
+    (0, _inherits3.default)(_class, _EventEmitter);
 
-        this.delay = 60;
-        this.maxPages = 5;
-        this.maxDepth = 2;
-        this.skipFiles = /jpg|jpeg|png|gif|bmp|tif|tiff|svg|pdf|wav|mpa|mp3|avi|flv|m4v|mov|mp4|mpg|swf|wmv|tar|gz|zip|rar|pkg|7z|xls|doc|log|odt|rtf|txt|exe|jar|com|bat/i;
+    function _class(url) {
+        var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+        (0, _classCallCheck3.default)(this, _class);
+        // must
 
-        this.cache = new _cache2.default();
-        this.uri = new _urijs2.default(conf.url);
-        this.uri.root = this.uri.protocol() + '://' + this.uri.hostname();
-        this.pages = conf.pages;
-        if (conf && conf.crawl) {
-            for (var prop in conf.crawl) {
-                this[prop] = conf.crawl[prop];
-            }
+        // Set root url
+
+        var _this = (0, _possibleConstructorReturn3.default)(this, (0, _getPrototypeOf2.default)(_class).call(this));
+
+        _this.skipFiles = /jpg|jpeg|png|gif|bmp|tif|tiff|svg|pdf|wav|mpa|mp3|avi|flv|m4v|mov|mp4|mpg|swf|wmv|tar|gz|zip|rar|pkg|7z|xls|doc|log|odt|rtf|txt|exe|jar|com|bat/i;
+        _this._url = _url3.default.parse(url, true, true);
+
+        // Use Queue to handle links
+        _this._queue = new _queue2.default({ maxItems: options.maxItems, maxDepth: options.maxDepth });
+
+        // Use Parser to get links and data
+        _this._parser = new _parser2.default();
+
+        // Use Cache to not handle an url more than once
+        _this._cache = new _cache2.default();
+
+        // Use WebCache to cache html and save unnecessary downloads
+        if (options.cache) {
+            _this._wc = new _webCache2.default();
         }
+
+        // Handle robots.txt
+        _this._robot();
+
+        // Handle options
+        _this._delay = options.delay !== undefined ? options.delay : 5; // seconds
+        _this._maxItems = options.maxItems !== undefined ? options.maxItems : 5;
+        _this._maxDepth = options.maxDepth !== undefined ? options.maxDepth : 2;
+        _this._download = options.download;
+        return _this;
     }
+
+    // Start crawling!
+
+
     // Skip some common filetypes 'cause you never know whats out there (http://fileinfo.com/filetypes/common)
-    // sec
 
 
-    _createClass(_class, [{
+    (0, _createClass3.default)(_class, [{
         key: 'start',
         value: function start() {
-            var _this = this;
+            var target = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-            return new Promise(function (fulfill, reject) {
 
-                // robots.txt
-                var robotsFile = _this.uri.root + '/robots.txt';
-                var robotsContent = _fs2.default.readFileSync(__dirname + '/../tmp/robots.txt').toString(); // tmp
-                if (robotsContent) {
-                    _this.robots = (0, _robotsParser2.default)(robotsFile, robotsContent);
+            // Handle target
+            this._mode = target.mode;
+            this._path = target.path || '';
+            this._follow = target.follow;
+            this._skip = target.skip;
+            this._find = target.find;
+            this._get = target.get;
 
-                    // If robots spesifies delay and it is greater than ours, respect it!
-                    var delay = _this.robots.getCrawlDelay();
-                    if (delay && delay > _this.delay) {
-                        _this.delay = delay;
-                    }
+            var url = _url3.default.resolve(this._url, this._path);
 
-                    // Makes sure we are wanted
-                    if (!_this.robots.isAllowed(_this.uri.root, USER_AGENT)) {
-                        reject('Stopped by robots.txt!');
-                        return;
-                    }
-                }
+            // Init queue and add entry point
+            this._queue.init();
+            this._queue.add(url);
 
-                // Init queue
-                _this.queue = new _queue2.default(_this.maxPages, _this.maxDepth);
-                _this.queue.add(_this.uri.toString());
+            // Init cache and set entry point
+            this._cache.init();
+            this._cache.set(url);
 
-                // Cache main url
-                _this.cache.set(_this.uri.toString());
+            // Don't wait on first download
+            this._wait = false;
 
-                // Start crawling from queue
-                _this._crawl().then(function () {
-                    fulfill();
-                });
-            });
+            // Start crawling from queue
+            return this._crawl();
         }
 
-        // Recursively crawl urls from queue
-        // Promise pattern: https://gist.github.com/fractalf/c0eb369373d8fb1242ebb537e20e4794
+        // Recursive crawl urls from queue until queue is empty
 
     }, {
         key: '_crawl',
-        value: function _crawl() {
-            var _this2 = this;
+        value: function () {
+            var ref = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee() {
+                var url, html, links, data;
+                return _regenerator2.default.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                url = this._queue.get();
 
-            return new Promise(function (fulfill, reject) {
-                var url = _this2.queue.get();
-                if (url) {
-                    _log2.default.verbose('[crawler] download: ' + url);
-                    (0, _download2.default)(url).then(function (res) {
-                        _log2.default.debug('[crawler] size: ' + res.size + (res.gzip ? ' (gzip)' : ' (uncompressed)'));
-                        _log2.default.debug('[crawler] time: ' + res.time);
+                                if (!url) {
+                                    _context.next = 7;
+                                    break;
+                                }
 
-                        // Parse html
-                        var parser = new _parser2.default(res.html);
+                                _context.next = 4;
+                                return this._getHtml(url);
 
-                        // Get and validate all links and add to queue
-                        var links = parser.getLinks();
-                        _log2.default.debug('[crawler] validate ' + links.length + ' links');
-                        links = _this2._validateLinks(links);
-                        _log2.default.debug('[crawler] found ' + links.length + ' new links');
-                        if (links.length) {
-                            _this2.queue.add(links);
+                            case 4:
+                                html = _context.sent;
+
+                                if (html) {
+                                    this._parser.html = html;
+
+                                    // Get links and add to queue
+                                    links = this._getLinks();
+
+                                    if (links) {
+                                        this._queue.add(links);
+                                    }
+
+                                    // Get data and tell 'found-data' listeners about it
+                                    data = this._getData();
+
+                                    if (data) {
+                                        this.emit('found-data', data);
+                                    }
+                                }
+                                return _context.abrupt('return', this._queue.empty ? null : this._crawl());
+
+                            case 7:
+                            case 'end':
+                                return _context.stop();
                         }
+                    }
+                }, _callee, this);
+            }));
 
-                        // #########################################################################
-                        // TODO: Need to do something with the html document at hand!
-                        // #########################################################################
+            function _crawl() {
+                return ref.apply(this, arguments);
+            }
 
-                        // Crawl next in queue
-                        if (!_this2.queue.isEmpty()) {
-                            _log2.default.debug('[crawler] sleep ' + _this2.delay + ' s');
-                            setTimeout(function () {
-                                fulfill(true);
-                            }, _this2.delay * 1000);
-                        } else {
-                            fulfill(false);
+            return _crawl;
+        }()
+
+        // Get html from cache or download
+
+    }, {
+        key: '_getHtml',
+        value: function () {
+            var ref = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee2(url) {
+                var _this2 = this;
+
+                var html, res;
+                return _regenerator2.default.wrap(function _callee2$(_context2) {
+                    while (1) {
+                        switch (_context2.prev = _context2.next) {
+                            case 0:
+                                html = this._wc && !this._download ? this._wc.get(url) : false;
+
+                                if (!(html !== false)) {
+                                    _context2.next = 6;
+                                    break;
+                                }
+
+                                _log2.default.verbose('[crawler] %s: %s (cached) ', this._queue.depth, url);
+                                if (html === null) {
+                                    // if 404..
+                                    _log2.default.error('No html (404?)');
+                                }
+                                _context2.next = 29;
+                                break;
+
+                            case 6:
+                                if (!this._wait) {
+                                    _context2.next = 12;
+                                    break;
+                                }
+
+                                _log2.default.debug('[crawler] sleep %s s', this._delay);
+                                _context2.next = 10;
+                                return new _promise2.default(function (resolve) {
+                                    return setTimeout(resolve, _this2._delay * 1000);
+                                });
+
+                            case 10:
+                                _context2.next = 13;
+                                break;
+
+                            case 12:
+                                this._wait = true;
+
+                            case 13:
+
+                                // Download
+                                _log2.default.verbose('[crawler] %s: %s', this._queue.depth, url);
+                                _context2.prev = 14;
+                                _context2.next = 17;
+                                return (0, _download2.default)(url);
+
+                            case 17:
+                                res = _context2.sent;
+
+                                _log2.default.silly(res.headers);
+                                _log2.default.debug('[crawler] size: %s (%s)', res.size, res.gzip ? 'gzip' : 'uncompressed');
+                                _log2.default.debug('[crawler] time: ' + res.time);
+                                html = res.html;
+                                _context2.next = 28;
+                                break;
+
+                            case 24:
+                                _context2.prev = 24;
+                                _context2.t0 = _context2['catch'](14);
+
+                                _log2.default.error(_context2.t0);
+                                html = null;
+
+                            case 28:
+                                if (this._wc) {
+                                    this._wc.set(url, html);
+                                }
+
+                            case 29:
+                                return _context2.abrupt('return', html);
+
+                            case 30:
+                            case 'end':
+                                return _context2.stop();
                         }
-                    }).catch(function (e) {
-                        _log2.default.error(e);
-                    });
+                    }
+                }, _callee2, this, [[14, 24]]);
+            }));
+
+            function _getHtml(_x3) {
+                return ref.apply(this, arguments);
+            }
+
+            return _getHtml;
+        }()
+
+        // Get links for different modes
+
+    }, {
+        key: '_getLinks',
+        value: function _getLinks() {
+            // Continue crawling?
+            var getLinks = true;
+            if (this._mode == 'fetch') {
+                getLinks = false;
+            } else if (this._mode == 'waterfall') {
+                var index = this._queue.depth - 1;
+                if (index == this._follow.length) {
+                    getLinks = false;
                 }
-            }).then(function (keepCrawling) {
-                if (keepCrawling) {
-                    return _this2._crawl();
-                } else {
-                    return;
+            }
+
+            // Get links to crawl
+            var links = void 0;
+            if (getLinks) {
+
+                // Handle follow rules
+                var follow = void 0;
+                if (this._mode == 'waterfall') {
+                    follow = this._follow[index];
+                } else if (this._follow) {
+                    follow = this._follow;
                 }
-            }).catch(function (e) {
-                _log2.default.error(e);
-            });
+
+                // Get links
+                links = this._parser.getLinks(follow, this._skip);
+                _log2.default.debug('[crawler] %d links found', links.length);
+
+                // Validate links
+                links = this._validateLinks(links);
+                _log2.default.debug('[crawler] %d links passed validation', links.length);
+            }
+
+            return links && links.length ? links : false;
         }
+
+        // Get data by parsing html
+
+    }, {
+        key: '_getData',
+        value: function _getData() {
+            // Get data? Go through cases..
+            var getData = false;
+            if (this._mode == 'waterfall') {
+                if (this._follow.length + 1 === this._queue.depth) {
+                    getData = true;
+                }
+            } else if (this._find) {
+                if (typeof this._find === 'string') {
+                    if (url.match(new RegExp(this._find))) {
+                        getData = true;
+                    }
+                } else {
+                    if (this._parser.find(this._find.elem)) {
+                        getData = true;
+                    }
+                }
+            } else {
+                getData = true;
+            }
+
+            var data = void 0;
+            if (getData) {
+                // Return parsed html if "get" is defined in config, else plain html
+                if (this._get) {
+                    data = {};
+                    for (var prop in this._get) {
+                        data[prop] = this._parser.getData(this._get[prop]);
+                    }
+                } else {
+                    data = this._parser.html;
+                }
+            } else {
+                data = false;
+            }
+
+            return data;
+        }
+
+        // Validate links
+
     }, {
         key: '_validateLinks',
         value: function _validateLinks(links) {
             var result = [];
-            var uri = new _urijs2.default();
+            // let uri = new URI();
             var _iteratorNormalCompletion = true;
             var _didIteratorError = false;
             var _iteratorError = undefined;
 
             try {
-                for (var _iterator = links[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                    var v = _step.value;
+                for (var _iterator = (0, _getIterator3.default)(links), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    var link = _step.value;
 
-                    // Populate URI object
-                    uri.href(v);
+                    // Populate url object
+                    var _url = _url3.default.parse(link, false, true); // https://nodejs.org/api/url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost
 
-                    // Skip protocols other than http(s)
-                    if (uri.protocol() && uri.protocol().indexOf('http') !== 0) {
-                        _log2.default.silly('[crawler] Skip: unsupported protocol - ' + _url);
+                    // Skip protocols other than http(s) (mailto, ftp, ..)
+                    if (_url.protocol && _url.protocol.indexOf('http') !== 0) {
+                        _log2.default.silly('[crawler] Skip: ' + link + ' (unsupported protocol)');
                         continue;
                     }
 
-                    // Set host and skip different hosts
-                    if (!uri.host()) {
-                        uri.host(this.uri.host());
-                    } else if (uri.host() != this.uri.host()) {
-                        _log2.default.silly('[crawler] Skip: different host - ' + _url);
+                    if (!_url.hostname) {
+                        // Set host if empty
+                        _url.hostname = this._url.hostname;
+                    } else if (_url.hostname != this._url.hostname) {
+                        // Skip different/external hosts
+                        _log2.default.silly('[crawler] Skip: ' + link + ' (different host)');
                         continue;
                     }
 
-                    // Force protocol to same as this.uri
-                    uri.protocol(this.uri.protocol());
+                    if (_url.pathname) {
+                        // Skip certain file types
+                        var matches = _url.pathname.match(/\.(\w{2,4})$/);
+                        if (matches) {
+                            if (matches[1].match(this._skipFiles) !== null) {
+                                _log2.default.silly('[crawler] Skip: ' + link + ' (file type)');
+                                continue;
+                            }
+                        }
 
-                    // Normalize
-                    uri.normalize();
+                        // Remove trailing slash (questionable, this can be improved?)
+                        _url.pathname = _url.pathname.replace(/\/$/, '');
+                    }
 
-                    // Remove trailing slash
-                    uri.path(uri.path().replace(/\/$/, ""));
+                    // Force protocol to same as this._url
+                    _url.protocol = this._url.protocol;
 
-                    // Remove #anchor
-                    uri.hash('');
+                    // Remove #hash
+                    _url.hash = null;
 
                     // Build url
-                    var _url = uri.toString();
+                    var urlString = _url.format();
 
                     // Skip handled links
-                    if (this.cache.has(_url)) {
-                        _log2.default.silly('[crawler] Skip: found in cache - ' + _url);
+                    if (this._cache.has(urlString)) {
+                        _log2.default.silly('[crawler] Skip: ' + link + ' (found in cache)');
                         continue;
                     } else {
-                        this.cache.set(_url);
-                    }
-
-                    // Skip certain file types
-                    if (uri.suffix().match(this.skipFiles) !== null) {
-                        _log2.default.silly('[crawler] Skip: file - ' + _url);
-                        continue;
+                        this._cache.set(urlString);
                     }
 
                     // Check robots.txt
-                    if (this.robots && this.robots.isDisallowed(_url, USER_AGENT)) {
-                        _log2.default.silly('[crawler] Skip: disallowed in robots.txt - ' + _url);
+                    if (this._robots && this._robots.isDisallowed(urlString, USER_AGENT)) {
+                        _log2.default.silly('[crawler] Skip: ' + link + ' (disallowed in robots.txt)');
                         continue;
                     }
 
-                    // Skip urls in config
-                    if (this.skip.path) {
-                        var skip = false;
-                        var _iteratorNormalCompletion2 = true;
-                        var _didIteratorError2 = false;
-                        var _iteratorError2 = undefined;
-
-                        try {
-                            for (var _iterator2 = this.skip.path[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-                                var p = _step2.value;
-
-                                if (uri.path().indexOf(p) === 0) {
-                                    _log2.default.silly('[crawler] Skip: path - ' + _url);
-                                    skip = true;
-                                    continue;
-                                }
-                            }
-                        } catch (err) {
-                            _didIteratorError2 = true;
-                            _iteratorError2 = err;
-                        } finally {
-                            try {
-                                if (!_iteratorNormalCompletion2 && _iterator2.return) {
-                                    _iterator2.return();
-                                }
-                            } finally {
-                                if (_didIteratorError2) {
-                                    throw _iteratorError2;
-                                }
-                            }
-                        }
-
-                        if (skip) {
-                            continue;
-                        }
-                    }
-                    result.push(_url);
+                    _log2.default.silly('[crawler] New:  ' + link);
+                    result.push(urlString);
                 }
             } catch (err) {
                 _didIteratorError = true;
@@ -281,10 +488,32 @@ var _class = function () {
             ;
             return result;
         }
-    }]);
 
+        // Handle robots.txt
+
+    }, {
+        key: '_robot',
+        value: function _robot() {
+            var robotsFile = this._url.format() + 'robots.txt';
+            var robotsContent = _fs2.default.readFileSync(__dirname + '/../tmp/robots.txt').toString(); // tmp
+            if (robotsContent) {
+                this._robots = (0, _robotsParser2.default)(robotsFile, robotsContent);
+
+                // If robots spesifies delay and it is greater than ours, respect it!
+                var delay = this._robots.getCrawlDelay();
+                if (delay && delay > this._delay) {
+                    this._delay = delay;
+                }
+
+                // Makes sure we are wanted
+                if (!this._robots.isAllowed(this._url.format(), USER_AGENT)) {
+                    throw new Error('User-Agent not allowed by robots.txt');
+                }
+            }
+        }
+    }]);
     return _class;
-}();
+}(_events2.default);
 
 exports.default = _class;
 //# sourceMappingURL=crawler.js.map

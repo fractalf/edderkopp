@@ -4,22 +4,31 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _classCallCheck2 = require('babel-runtime/helpers/classCallCheck');
+
+var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
+
+var _createClass2 = require('babel-runtime/helpers/createClass');
+
+var _createClass3 = _interopRequireDefault(_createClass2);
 
 var _winston = require('winston');
 
 var _winston2 = _interopRequireDefault(_winston);
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _util = require('util');
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+var _util2 = _interopRequireDefault(_util);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 _winston2.default.emitErrs = true;
 
 var Log = function () {
     function Log() {
-        _classCallCheck(this, Log);
+        var _this = this;
 
+        (0, _classCallCheck3.default)(this, Log);
         this._level = 'info';
 
         this.log = new _winston2.default.Logger({
@@ -33,42 +42,20 @@ var Log = function () {
             exitOnError: false
         });
         this._settings = this.log.transports.console;
+
+        // Mapping methods to winston and support util.format('a %s c', 'b')
+        ['silly', 'debug', 'verbose', 'info', 'warn', 'error'].forEach(function (func) {
+            _this[func] = function () {
+                for (var _len = arguments.length, arg = Array(_len), _key = 0; _key < _len; _key++) {
+                    arg[_key] = arguments[_key];
+                }
+
+                _this.log[func](arg[1] !== undefined ? _util2.default.format.apply(null, arg) : arg[0]);
+            };
+        });
     }
 
-    _createClass(Log, [{
-        key: 'silly',
-
-
-        // Mapping methods to winston
-        value: function silly(msg) {
-            this.log.silly(msg);
-        }
-    }, {
-        key: 'debug',
-        value: function debug(msg) {
-            this.log.debug(msg);
-        }
-    }, {
-        key: 'verbose',
-        value: function verbose(msg) {
-            this.log.verbose(msg);
-        }
-    }, {
-        key: 'info',
-        value: function info(msg) {
-            this.log.info(msg);
-        }
-    }, {
-        key: 'warn',
-        value: function warn(msg) {
-            this.log.warn(msg);
-        }
-    }, {
-        key: 'error',
-        value: function error(msg) {
-            this.log.error(msg);
-        }
-    }, {
+    (0, _createClass3.default)(Log, [{
         key: 'file',
         set: function set(filename) {
             this.log = new _winston2.default.Logger({
@@ -104,7 +91,6 @@ var Log = function () {
             this._settings.level = level;
         }
     }]);
-
     return Log;
 }();
 

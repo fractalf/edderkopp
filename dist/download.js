@@ -4,6 +4,18 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _promise = require('babel-runtime/core-js/promise');
+
+var _promise2 = _interopRequireDefault(_promise);
+
+var _assign = require('babel-runtime/core-js/object/assign');
+
+var _assign2 = _interopRequireDefault(_assign);
+
+var _getIterator2 = require('babel-runtime/core-js/get-iterator');
+
+var _getIterator3 = _interopRequireDefault(_getIterator2);
+
 exports.default = function (url, options) {
     if (options) {
         if (options.cookies) {
@@ -13,7 +25,7 @@ exports.default = function (url, options) {
             var _iteratorError = undefined;
 
             try {
-                for (var _iterator = options.cookies[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                for (var _iterator = (0, _getIterator3.default)(options.cookies), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
                     var cookie = _step.value;
 
                     j.setCookie(cookie, url);
@@ -42,7 +54,7 @@ exports.default = function (url, options) {
     }
 
     var t0 = process.hrtime();
-    options = Object.assign({
+    options = (0, _assign2.default)({
         url: url,
         headers: {
             'User-Agent': USER_AGENT
@@ -50,7 +62,7 @@ exports.default = function (url, options) {
         gzip: true,
         timeout: 60000
     }, options);
-    return new Promise(function (fulfill, reject) {
+    return new _promise2.default(function (fulfill, reject) {
         (0, _request2.default)(options, function (error, response, html) {
             if (error !== null) {
                 reject(error);

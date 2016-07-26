@@ -4,8 +4,8 @@
   "description": "Crawl and scrape webpages for data using simple json config files",
   "main": "dist/index.js",
   "scripts": {
-    "build": "babel --presets es2015,stage-0 src -d dist -s",
-    "watch": "babel --presets es2015,stage-0 --watch src -d dist -s",
+    "build": "babel --presets es2015,stage-0 --plugins transform-runtime src -d dist -s",
+    "watch": "babel --presets es2015,stage-0 --plugins transform-runtime -w src -d dist -s",
     "example": "babel-node --presets es2015,stage-0 ./example/run-es6.js"
   },
   "repository": {
@@ -28,7 +28,6 @@
     "cheerio": "^0.20.0",
     "request": "^2.72.0",
     "robots-parser": "^1.0.0",
-    "urijs": "^1.18.1",
     "winston": "^2.2.0"
   },
   "devDependencies": {
