@@ -23,7 +23,6 @@ var _fs2 = _interopRequireDefault(_fs);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // WebCache
-
 var _class = function () {
     function _class(file) {
         (0, _classCallCheck3.default)(this, _class);

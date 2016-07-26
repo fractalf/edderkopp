@@ -1,5 +1,4 @@
 import EventEmitter from 'events';
-import fs from 'fs';
 import u from 'url';
 import robotsParser from 'robots-parser';
 
@@ -36,9 +35,6 @@ export default class extends EventEmitter {
             this._wc = new WebCache();
         }
 
-        // Handle robots.txt
-        this._robot();
-
         // Handle options
         this._delay = options.delay !== undefined ? options.delay : 5; // seconds
         this._maxItems = options.maxItems !== undefined ? options.maxItems : 5;
@@ -47,7 +43,12 @@ export default class extends EventEmitter {
     }
 
     // Start crawling!
-    start(target = {}) {
+    async start(target = {}) {
+        log.debug('[crawler] start');
+        log.silly(target);
+
+        // Handle robots.txt
+        await this._robot();
 
         // Handle target
         this._mode = target.mode;
@@ -94,7 +95,12 @@ export default class extends EventEmitter {
                     this.emit('found-data', data);
                 }
             }
-            return this._queue.empty ? null : this._crawl();
+            if (this._queue.empty) {
+                log.debug('[crawler] done');
+                return;
+            } else {
+                return this._crawl();
+            }
         }
     }
 
@@ -102,7 +108,7 @@ export default class extends EventEmitter {
     async _getHtml(url) {
         let html = this._wc && !this._download ? this._wc.get(url) : false;
         if (html !== false) {
-            log.verbose('[crawler] %s: %s (cached) ', this._queue.depth, url);
+            log.verbose('[crawler] %s: %s - CACHED ', this._queue.depth, url);
             if (html === null) { // if 404..
                 log.error('No html (404?)');
             }
@@ -278,11 +284,34 @@ export default class extends EventEmitter {
     }
 
     // Handle robots.txt
-    _robot() {
-        const robotsFile = this._url.format() + 'robots.txt';
-        const robotsContent = fs.readFileSync(__dirname + '/../tmp/robots.txt').toString(); // tmp
-        if (robotsContent) {
-            this._robots = robotsParser(robotsFile, robotsContent);
+    async _robot() {
+        if (this._robots) {
+            return;
+        }
+
+        const url = this._url.format() + 'robots.txt';
+        let content = this._wc && !this._download ? this._wc.get(url) : false;
+        if (content !== false) {
+            log.verbose('[crawler] %s - CACHED', url);
+            if (content === null) {
+                log.warn('No robots.txt');
+            }
+        } else {
+            log.verbose('[crawler] ' + url);
+            try {
+                var res = await download(url);
+                content = res.html;
+            } catch (err) {
+                log.error(err);
+                content = null;
+            }
+            if (this._wc) {
+                this._wc.set(url, content);
+            }
+        }
+
+        if (content) {
+            this._robots = robotsParser(url, content);
 
             // If robots spesifies delay and it is greater than ours, respect it!
             const delay = this._robots.getCrawlDelay();

@@ -15,7 +15,6 @@ var _createClass3 = _interopRequireDefault(_createClass2);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // Queue
-
 var _class = function () {
     function _class() {
         var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];

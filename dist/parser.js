@@ -33,7 +33,6 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // Parser
-
 var _class = function () {
     // Keep values=null in dataset
 
@@ -189,66 +188,70 @@ var _class = function () {
                 values = [];
             var dataType = Array.isArray(rule.data) ? rule.data[0] : rule.data;
             $elem.each(function () {
-                switch (dataType) {
-                    case 'html':
-                        // Get all content including tags
-                        // Ex: <p>paragraph 1</p> <p>paragraph 2</p> <p>paragraph 3</p>
-                        value = $(this).html().trim();
-                        if (value) {
-                            values.push(value);
-                        }
-                        break;
-                    case 'text':
-                        // Get only text nodes
-                        // Ex: <span>skip this</span> get this <span>skip this</span>
-                        var nodes = [];
-                        $(this).contents().each(function (i, el) {
-                            if (el.nodeType == 3) {
-                                // 3 = TEXT_NODE
-                                value = el.data.trim();
+                var _this3 = this;
+
+                (function () {
+                    switch (dataType) {
+                        case 'html':
+                            // Get all content including tags
+                            // Ex: <p>paragraph 1</p> <p>paragraph 2</p> <p>paragraph 3</p>
+                            value = $(_this3).html().trim();
+                            if (value) {
+                                values.push(value);
+                            }
+                            break;
+                        case 'text':
+                            // Get only text nodes
+                            // Ex: <span>skip this</span> get this <span>skip this</span>
+                            var nodes = [];
+                            $(_this3).contents().each(function (i, el) {
+                                if (el.nodeType == 3) {
+                                    // 3 = TEXT_NODE
+                                    value = el.data.trim();
+                                    if (value) {
+                                        nodes.push(el.data.trim());
+                                    }
+                                }
+                            });
+                            var index = typeof rule.data !== 'string' ? rule.data[1] : false;
+                            if (index !== false) {
+                                values.push(nodes[index]);
+                            } else {
+                                values = [].concat(values, nodes);
+                            }
+                            break;
+                        case 'attr':
+                            // Get content from attribute
+                            // Ex: <img src="value">, <a href="value">foo</a>
+                            for (var i = 1; i < rule.data.length; i++) {
+                                value = $(_this3).attr(rule.data[i]);
                                 if (value) {
-                                    nodes.push(el.data.trim());
+                                    values.push(value);
+                                } else {
+                                    _log2.default.warn('[parser] Attribute not found: ' + rule.data[i]);
                                 }
                             }
-                        });
-                        var index = typeof rule.data !== 'string' ? rule.data[1] : false;
-                        if (index !== false) {
-                            values.push(nodes[index]);
-                        } else {
-                            values = [].concat(values, nodes);
-                        }
-                        break;
-                    case 'attr':
-                        // Get content from attribute
-                        // Ex: <img src="value">, <a href="value">foo</a>
-                        for (var i = 1; i < rule.data.length; i++) {
-                            value = $(this).attr(rule.data[i]);
+                            break;
+                        case 'data':
+                            // Get content from data
+                            // Ex: <div data-img-a="value" data-img-b="value" data-img-c="value">
+                            for (var _i = 1; _i < rule.data.length; _i++) {
+                                value = $(_this3).data(rule.data[_i]);
+                                if (value) {
+                                    values.push(value);
+                                } else {
+                                    _log2.default.warn('[parser] Data attribute not found: ' + rule.data[_i]);
+                                }
+                            }
+                            break;
+                        default:
+                            // Get only text (strip away tags)
+                            value = $(_this3).text().trim();
                             if (value) {
                                 values.push(value);
-                            } else {
-                                _log2.default.warn('[parser] Attribute not found: ' + rule.data[i]);
                             }
-                        }
-                        break;
-                    case 'data':
-                        // Get content from data
-                        // Ex: <div data-img-a="value" data-img-b="value" data-img-c="value">
-                        for (var _i = 1; _i < rule.data.length; _i++) {
-                            value = $(this).data(rule.data[_i]);
-                            if (value) {
-                                values.push(value);
-                            } else {
-                                _log2.default.warn('[parser] Data attribute not found: ' + rule.data[_i]);
-                            }
-                        }
-                        break;
-                    default:
-                        // Get only text (strip away tags)
-                        value = $(this).text().trim();
-                        if (value) {
-                            values.push(value);
-                        }
-                }
+                    }
+                })();
             });
 
             // Run tasks on values
