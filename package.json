@@ -4,9 +4,18 @@
   "description": "Crawl and scrape webpages for data using simple json config files",
   "main": "dist/index.js",
   "scripts": {
-    "build": "babel --presets es2015,stage-0 --plugins transform-runtime src -d dist -s",
-    "watch": "babel --presets es2015,stage-0 --plugins transform-runtime -w src -d dist -s",
-    "example": "babel-node --presets es2015,stage-0 ./example/run-es6.js"
+    "build": "babel src -d dist -s",
+    "watch": "babel -w src -d dist -s",
+    "example": "babel-node ./example/run-es6.js"
+  },
+  "babel": {
+    "presets": [
+      "es2015",
+      "stage-0"
+    ],
+    "plugins": [
+      "transform-runtime"
+    ]
   },
   "repository": {
     "type": "git",
@@ -24,6 +33,7 @@
   },
   "homepage": "https://github.com/fractalf/edderkopp",
   "dependencies": {
+    "babel-plugin-transform-runtime": "^6.9.0",
     "blueimp-md5": "^2.3.0",
     "cheerio": "^0.20.0",
     "request": "^2.72.0",
