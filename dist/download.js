@@ -32,10 +32,6 @@ var _request = require('request');
 
 var _request2 = _interopRequireDefault(_request);
 
-var _webCache = require('./web-cache');
-
-var _webCache2 = _interopRequireDefault(_webCache);
-
 var _log = require('./log');
 
 var _log2 = _interopRequireDefault(_log);

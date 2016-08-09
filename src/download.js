@@ -1,5 +1,4 @@
 import request from "request";
-import Cache from './web-cache';
 import log from './log';
 
 export default class {
