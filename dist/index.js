@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.WebCache = exports.Crawler = exports.Parser = exports.download = exports.config = exports.log = undefined;
+exports.WebCache = exports.Crawler = exports.Parser = exports.Download = exports.config = exports.log = undefined;
 
 var _log = require('./log');
 
@@ -36,7 +36,7 @@ global.USER_AGENT = 'Edderkopp/' + VERSION;
 
 exports.log = _log2.default;
 exports.config = _config2.default;
-exports.download = _download2.default;
+exports.Download = _download2.default;
 exports.Parser = _parser2.default;
 exports.Crawler = _crawler2.default;
 exports.WebCache = _webCache2.default;

@@ -8,13 +8,13 @@ var _getIterator2 = require('babel-runtime/core-js/get-iterator');
 
 var _getIterator3 = _interopRequireDefault(_getIterator2);
 
-var _promise = require('babel-runtime/core-js/promise');
-
-var _promise2 = _interopRequireDefault(_promise);
-
 var _regenerator = require('babel-runtime/regenerator');
 
 var _regenerator2 = _interopRequireDefault(_regenerator);
+
+var _promise = require('babel-runtime/core-js/promise');
+
+var _promise2 = _interopRequireDefault(_promise);
 
 var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
 
@@ -68,10 +68,6 @@ var _queue = require('./queue');
 
 var _queue2 = _interopRequireDefault(_queue);
 
-var _webCache = require('./web-cache');
-
-var _webCache2 = _interopRequireDefault(_webCache);
-
 var _cache = require('./cache');
 
 var _cache2 = _interopRequireDefault(_cache);
@@ -91,8 +87,11 @@ var _class = function (_EventEmitter) {
         // Set root url
         var _this = (0, _possibleConstructorReturn3.default)(this, (0, _getPrototypeOf2.default)(_class).call(this));
 
-        _this.skipFiles = /jpg|jpeg|png|gif|bmp|tif|tiff|svg|pdf|wav|mpa|mp3|avi|flv|m4v|mov|mp4|mpg|swf|wmv|tar|gz|zip|rar|pkg|7z|xls|doc|log|odt|rtf|txt|exe|jar|com|bat/i;
+        _this._skipFiles = /jpg|jpeg|png|gif|bmp|tif|tiff|svg|pdf|wav|mpa|mp3|avi|flv|m4v|mov|mp4|mpg|swf|wmv|tar|gz|zip|rar|pkg|7z|xls|doc|log|odt|rtf|txt|exe|jar|com|bat/i;
         _this._url = _url3.default.parse(url, true, true);
+
+        // Delay
+        _this._delay = options.delay !== undefined ? options.delay : 5; // seconds
 
         // Use Queue to handle links
         _this._queue = new _queue2.default({ maxItems: options.maxItems, maxDepth: options.maxDepth });
@@ -103,16 +102,6 @@ var _class = function (_EventEmitter) {
         // Use Cache to not handle an url more than once
         _this._cache = new _cache2.default();
 
-        // Use WebCache to cache html and save unnecessary downloads
-        if (options.cache) {
-            _this._wc = new _webCache2.default();
-        }
-
-        // Handle options
-        _this._delay = options.delay !== undefined ? options.delay : 5; // seconds
-        _this._maxItems = options.maxItems !== undefined ? options.maxItems : 5;
-        _this._maxDepth = options.maxDepth !== undefined ? options.maxDepth : 2;
-        _this._download = options.download;
         return _this;
     }
 
@@ -136,10 +125,23 @@ var _class = function (_EventEmitter) {
                                 _log2.default.silly(target);
 
                                 // Handle robots.txt
-                                _context.next = 4;
+                                _context.prev = 2;
+                                _context.next = 5;
                                 return this._robot();
 
-                            case 4:
+                            case 5:
+                                _context.next = 10;
+                                break;
+
+                            case 7:
+                                _context.prev = 7;
+                                _context.t0 = _context['catch'](2);
+                                return _context.abrupt('return', _promise2.default.reject(_context.t0));
+
+                            case 10:
+
+                                // Handle delay
+                                _download2.default.delay = this._delay;
 
                                 // Handle target
                                 this._mode = target.mode;
@@ -160,18 +162,15 @@ var _class = function (_EventEmitter) {
                                 this._cache.init();
                                 this._cache.set(url);
 
-                                // Don't wait on first download
-                                this._wait = false;
-
                                 // Start crawling from queue
                                 return _context.abrupt('return', this._crawl());
 
-                            case 17:
+                            case 23:
                             case 'end':
                                 return _context.stop();
                         }
                     }
-                }, _callee, this);
+                }, _callee, this, [[2, 7]]);
             }));
 
             function start(_x2) {
@@ -187,7 +186,7 @@ var _class = function (_EventEmitter) {
         key: '_crawl',
         value: function () {
             var _ref2 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee2() {
-                var url, html, links, data;
+                var url, content, links, data;
                 return _regenerator2.default.wrap(function _callee2$(_context2) {
                     while (1) {
                         switch (_context2.prev = _context2.next) {
@@ -195,18 +194,38 @@ var _class = function (_EventEmitter) {
                                 url = this._queue.get();
 
                                 if (!url) {
-                                    _context2.next = 12;
+                                    _context2.next = 20;
                                     break;
                                 }
 
-                                _context2.next = 4;
-                                return this._getHtml(url);
+                                // Depth
+                                if (this._depth != this._queue.depth) {
+                                    this._depth = this._queue.depth;
+                                    _log2.default.verbose('[crawler] --- depth %s ---', this._queue.depth);
+                                }
 
-                            case 4:
-                                html = _context2.sent;
+                                // Download
+                                content = null;
+                                _context2.prev = 4;
+                                _context2.next = 7;
+                                return _download2.default.get(url);
 
-                                if (html) {
-                                    this._parser.html = html;
+                            case 7:
+                                content = _context2.sent;
+                                _context2.next = 13;
+                                break;
+
+                            case 10:
+                                _context2.prev = 10;
+                                _context2.t0 = _context2['catch'](4);
+
+                                _log2.default.error(_context2.t0);
+
+                            case 13:
+
+                                // Get links and data
+                                if (content) {
+                                    this._parser.html = content;
 
                                     // Get links and add to queue
                                     links = this._getLinks();
@@ -215,31 +234,33 @@ var _class = function (_EventEmitter) {
                                         this._queue.add(links);
                                     }
 
-                                    // Get data and tell 'found-data' listeners about it
+                                    // Get data and tell 'handle-data' listeners about it
                                     data = this._getData();
 
                                     if (data) {
-                                        this.emit('found-data', data);
+                                        this.emit('handle-data', data);
                                     }
                                 }
 
+                                // Check queue and continue or return
+
                                 if (!this._queue.empty) {
-                                    _context2.next = 11;
+                                    _context2.next = 19;
                                     break;
                                 }
 
                                 _log2.default.debug('[crawler] done');
                                 return _context2.abrupt('return');
 
-                            case 11:
+                            case 19:
                                 return _context2.abrupt('return', this._crawl());
 
-                            case 12:
+                            case 20:
                             case 'end':
                                 return _context2.stop();
                         }
                     }
-                }, _callee2, this);
+                }, _callee2, this, [[4, 10]]);
             }));
 
             function _crawl() {
@@ -247,101 +268,6 @@ var _class = function (_EventEmitter) {
             }
 
             return _crawl;
-        }()
-
-        // Get html from cache or download
-
-    }, {
-        key: '_getHtml',
-        value: function () {
-            var _ref3 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee3(url) {
-                var _this2 = this;
-
-                var html, res;
-                return _regenerator2.default.wrap(function _callee3$(_context3) {
-                    while (1) {
-                        switch (_context3.prev = _context3.next) {
-                            case 0:
-                                html = this._wc && !this._download ? this._wc.get(url) : false;
-
-                                if (!(html !== false)) {
-                                    _context3.next = 6;
-                                    break;
-                                }
-
-                                _log2.default.verbose('[crawler] %s: %s - CACHED ', this._queue.depth, url);
-                                if (html === null) {
-                                    // if 404..
-                                    _log2.default.error('No html (404?)');
-                                }
-                                _context3.next = 29;
-                                break;
-
-                            case 6:
-                                if (!this._wait) {
-                                    _context3.next = 12;
-                                    break;
-                                }
-
-                                _log2.default.debug('[crawler] sleep %s s', this._delay);
-                                _context3.next = 10;
-                                return new _promise2.default(function (resolve) {
-                                    return setTimeout(resolve, _this2._delay * 1000);
-                                });
-
-                            case 10:
-                                _context3.next = 13;
-                                break;
-
-                            case 12:
-                                this._wait = true;
-
-                            case 13:
-
-                                // Download
-                                _log2.default.verbose('[crawler] %s: %s', this._queue.depth, url);
-                                _context3.prev = 14;
-                                _context3.next = 17;
-                                return (0, _download2.default)(url);
-
-                            case 17:
-                                res = _context3.sent;
-
-                                _log2.default.silly(res.headers);
-                                _log2.default.debug('[crawler] size: %s (%s)', res.size, res.gzip ? 'gzip' : 'uncompressed');
-                                _log2.default.debug('[crawler] time: ' + res.time);
-                                html = res.html;
-                                _context3.next = 28;
-                                break;
-
-                            case 24:
-                                _context3.prev = 24;
-                                _context3.t0 = _context3['catch'](14);
-
-                                _log2.default.error(_context3.t0);
-                                html = null;
-
-                            case 28:
-                                if (this._wc) {
-                                    this._wc.set(url, html);
-                                }
-
-                            case 29:
-                                return _context3.abrupt('return', html);
-
-                            case 30:
-                            case 'end':
-                                return _context3.stop();
-                        }
-                    }
-                }, _callee3, this, [[14, 24]]);
-            }));
-
-            function _getHtml(_x4) {
-                return _ref3.apply(this, arguments);
-            }
-
-            return _getHtml;
         }()
 
         // Get links for different modes
@@ -524,67 +450,56 @@ var _class = function (_EventEmitter) {
     }, {
         key: '_robot',
         value: function () {
-            var _ref4 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee4() {
-                var url, content, res, delay;
-                return _regenerator2.default.wrap(function _callee4$(_context4) {
+            var _ref3 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee3() {
+                var url, content, delay;
+                return _regenerator2.default.wrap(function _callee3$(_context3) {
                     while (1) {
-                        switch (_context4.prev = _context4.next) {
+                        switch (_context3.prev = _context3.next) {
                             case 0:
                                 if (!this._robots) {
-                                    _context4.next = 2;
+                                    _context3.next = 2;
                                     break;
                                 }
 
-                                return _context4.abrupt('return');
+                                return _context3.abrupt('return');
 
                             case 2:
                                 url = this._url.format() + 'robots.txt';
-                                content = this._wc && !this._download ? this._wc.get(url) : false;
+                                content = null;
+                                _context3.prev = 4;
+                                _context3.next = 7;
+                                return _download2.default.get(url);
 
-                                if (!(content !== false)) {
-                                    _context4.next = 9;
-                                    break;
-                                }
-
-                                _log2.default.verbose('[crawler] %s - CACHED', url);
-                                if (content === null) {
-                                    _log2.default.warn('No robots.txt');
-                                }
-                                _context4.next = 22;
+                            case 7:
+                                content = _context3.sent;
+                                _context3.next = 13;
                                 break;
 
-                            case 9:
-                                _log2.default.verbose('[crawler] ' + url);
-                                _context4.prev = 10;
-                                _context4.next = 13;
-                                return (0, _download2.default)(url);
+                            case 10:
+                                _context3.prev = 10;
+                                _context3.t0 = _context3['catch'](4);
+
+                                _log2.default.error(_context3.t0);
 
                             case 13:
-                                res = _context4.sent;
-
-                                content = res.html;
-                                _context4.next = 21;
-                                break;
-
-                            case 17:
-                                _context4.prev = 17;
-                                _context4.t0 = _context4['catch'](10);
-
-                                _log2.default.error(_context4.t0);
-                                content = null;
-
-                            case 21:
-                                if (this._wc) {
-                                    this._wc.set(url, content);
-                                }
-
-                            case 22:
                                 if (!content) {
-                                    _context4.next = 28;
+                                    _context3.next = 21;
                                     break;
                                 }
 
+                                // Init robots parser
                                 this._robots = (0, _robotsParser2.default)(url, content);
+
+                                // Makes sure we are wanted
+
+                                if (this._robots.isAllowed(this._url.format(), USER_AGENT)) {
+                                    _context3.next = 17;
+                                    break;
+                                }
+
+                                throw new Error('User-Agent not allowed by robots.txt');
+
+                            case 17:
 
                                 // If robots spesifies delay and it is greater than ours, respect it!
                                 delay = this._robots.getCrawlDelay();
@@ -592,26 +507,22 @@ var _class = function (_EventEmitter) {
                                 if (delay && delay > this._delay) {
                                     this._delay = delay;
                                 }
+                                _context3.next = 22;
+                                break;
 
-                                // Makes sure we are wanted
+                            case 21:
+                                _log2.default.debug('[crawler] No robots.txt');
 
-                                if (this._robots.isAllowed(this._url.format(), USER_AGENT)) {
-                                    _context4.next = 28;
-                                    break;
-                                }
-
-                                throw new Error('User-Agent not allowed by robots.txt');
-
-                            case 28:
+                            case 22:
                             case 'end':
-                                return _context4.stop();
+                                return _context3.stop();
                         }
                     }
-                }, _callee4, this, [[10, 17]]);
+                }, _callee3, this, [[4, 10]]);
             }));
 
             function _robot() {
-                return _ref4.apply(this, arguments);
+                return _ref3.apply(this, arguments);
             }
 
             return _robot;

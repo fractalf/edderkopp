@@ -27,33 +27,53 @@ var _class = function () {
     function _class(file) {
         (0, _classCallCheck3.default)(this, _class);
 
-        this.file = file || process.env.NODE_CONFIG_DIR || process.cwd() + '/web-cache.json';
+        this._file = file || process.env.NODE_CONFIG_DIR || process.cwd() + '/web-cache.json';
     }
 
     (0, _createClass3.default)(_class, [{
+        key: 'has',
+        value: function has(url) {
+            this._init();
+            return !!this._cache[url];
+        }
+    }, {
         key: 'get',
         value: function get(url) {
             this._init();
-            return this.cache[url] !== undefined ? this.cache[url] : false;
+            return this._cache[url] !== undefined ? this._cache[url] : false;
         }
     }, {
         key: 'set',
         value: function set(url, value) {
             this._init();
-            this.cache[url] = value;
-            _fs2.default.writeFileSync(this.file, (0, _stringify2.default)(this.cache));
+            this._cache[url] = value;
+            _fs2.default.writeFileSync(this._file, (0, _stringify2.default)(this._cache));
+        }
+    }, {
+        key: 'remove',
+        value: function remove(url) {
+            this._init();
+            if (this._cache[url] !== undefined) {
+                delete this._cache[url];
+                _fs2.default.writeFileSync(this._file, (0, _stringify2.default)(this._cache));
+            }
         }
     }, {
         key: '_init',
         value: function _init() {
-            if (this.cache === undefined) {
+            if (this._cache === undefined) {
                 try {
-                    var f = _fs2.default.readFileSync(this.file);
-                    this.cache = JSON.parse(f.toString());
+                    var f = _fs2.default.readFileSync(this._file);
+                    this._cache = JSON.parse(f.toString());
                 } catch (err) {
-                    this.cache = {};
+                    this._cache = {};
                 }
             }
+        }
+    }, {
+        key: 'file',
+        set: function set(file) {
+            this._file = file;
         }
     }]);
     return _class;

@@ -3,23 +3,25 @@ import u from 'url';
 import robotsParser from 'robots-parser';
 
 import log from './log';
-import download from "./download";
+import Download from "./download";
 import Parser from "./parser";
 import Queue from './queue';
-import WebCache from './web-cache';
 import Cache from './cache';
 
 // Crawler
 export default class extends EventEmitter {
 
     // Skip some common filetypes 'cause you never know whats out there (http://fileinfo.com/filetypes/common)
-    skipFiles = /jpg|jpeg|png|gif|bmp|tif|tiff|svg|pdf|wav|mpa|mp3|avi|flv|m4v|mov|mp4|mpg|swf|wmv|tar|gz|zip|rar|pkg|7z|xls|doc|log|odt|rtf|txt|exe|jar|com|bat/i;
+    _skipFiles = /jpg|jpeg|png|gif|bmp|tif|tiff|svg|pdf|wav|mpa|mp3|avi|flv|m4v|mov|mp4|mpg|swf|wmv|tar|gz|zip|rar|pkg|7z|xls|doc|log|odt|rtf|txt|exe|jar|com|bat/i;
 
     constructor(url, options = {}) {
         super(); // must
 
         // Set root url
         this._url = u.parse(url, true, true);
+
+        // Delay
+        this._delay = options.delay !== undefined ? options.delay : 5; // seconds
 
         // Use Queue to handle links
         this._queue = new Queue({ maxItems: options.maxItems, maxDepth: options.maxDepth });
@@ -30,16 +32,6 @@ export default class extends EventEmitter {
         // Use Cache to not handle an url more than once
         this._cache = new Cache();
 
-        // Use WebCache to cache html and save unnecessary downloads
-        if (options.cache) {
-            this._wc = new WebCache();
-        }
-
-        // Handle options
-        this._delay = options.delay !== undefined ? options.delay : 5; // seconds
-        this._maxItems = options.maxItems !== undefined ? options.maxItems : 5;
-        this._maxDepth = options.maxDepth !== undefined ? options.maxDepth : 2;
-        this._download = options.download;
     }
 
     // Start crawling!
@@ -48,7 +40,14 @@ export default class extends EventEmitter {
         log.silly(target);
 
         // Handle robots.txt
-        await this._robot();
+        try {
+            await this._robot();
+        } catch (err) {
+            return Promise.reject(err);
+        }
+
+        // Handle delay
+        Download.delay = this._delay;
 
         // Handle target
         this._mode = target.mode;
@@ -68,9 +67,6 @@ export default class extends EventEmitter {
         this._cache.init();
         this._cache.set(url);
 
-        // Don't wait on first download
-        this._wait = false;
-
         // Start crawling from queue
         return this._crawl();
     }
@@ -79,9 +75,23 @@ export default class extends EventEmitter {
     async _crawl() {
         const url = this._queue.get();
         if (url) {
-            let html = await this._getHtml(url);
-            if (html) {
-                this._parser.html = html;
+            // Depth
+            if (this._depth != this._queue.depth) {
+                this._depth = this._queue.depth;
+                log.verbose('[crawler] --- depth %s ---', this._queue.depth);
+            }
+
+            // Download
+            let content = null;
+            try {
+                content = await Download.get(url);
+            } catch (err) {
+                log.error(err);
+            }
+
+            // Get links and data
+            if (content) {
+                this._parser.html = content;
 
                 // Get links and add to queue
                 let links = this._getLinks();
@@ -89,12 +99,14 @@ export default class extends EventEmitter {
                     this._queue.add(links);
                 }
 
-                // Get data and tell 'found-data' listeners about it
+                // Get data and tell 'handle-data' listeners about it
                 let data = this._getData();
                 if (data) {
-                    this.emit('found-data', data);
+                    this.emit('handle-data', data);
                 }
             }
+
+            // Check queue and continue or return
             if (this._queue.empty) {
                 log.debug('[crawler] done');
                 return;
@@ -102,42 +114,6 @@ export default class extends EventEmitter {
                 return this._crawl();
             }
         }
-    }
-
-    // Get html from cache or download
-    async _getHtml(url) {
-        let html = this._wc && !this._download ? this._wc.get(url) : false;
-        if (html !== false) {
-            log.verbose('[crawler] %s: %s - CACHED ', this._queue.depth, url);
-            if (html === null) { // if 404..
-                log.error('No html (404?)');
-            }
-        } else {
-            // Wait between each download, but not the first
-            if (this._wait) {
-                log.debug('[crawler] sleep %s s', this._delay);
-                await new Promise(resolve => setTimeout(resolve, this._delay * 1000));
-            } else {
-                this._wait = true;
-            }
-
-            // Download
-            log.verbose('[crawler] %s: %s', this._queue.depth, url);
-            try {
-                var res = await download(url);
-                log.silly(res.headers);
-                log.debug('[crawler] size: %s (%s)', res.size, res.gzip ? 'gzip' : 'uncompressed');
-                log.debug('[crawler] time: ' + res.time);
-                html = res.html;
-            } catch (err) {
-                log.error(err);
-                html = null;
-            }
-            if (this._wc) {
-                this._wc.set(url, html);
-            }
-        }
-        return html;
     }
 
     // Get links for different modes
@@ -290,39 +266,30 @@ export default class extends EventEmitter {
         }
 
         const url = this._url.format() + 'robots.txt';
-        let content = this._wc && !this._download ? this._wc.get(url) : false;
-        if (content !== false) {
-            log.verbose('[crawler] %s - CACHED', url);
-            if (content === null) {
-                log.warn('No robots.txt');
-            }
-        } else {
-            log.verbose('[crawler] ' + url);
-            try {
-                var res = await download(url);
-                content = res.html;
-            } catch (err) {
-                log.error(err);
-                content = null;
-            }
-            if (this._wc) {
-                this._wc.set(url, content);
-            }
+
+        let content = null;
+        try {
+            content = await Download.get(url);
+        } catch (err) {
+            log.error(err);
         }
 
         if (content) {
+            // Init robots parser
             this._robots = robotsParser(url, content);
+
+            // Makes sure we are wanted
+            if (!this._robots.isAllowed(this._url.format(), USER_AGENT)) {
+                throw new Error('User-Agent not allowed by robots.txt')
+            }
 
             // If robots spesifies delay and it is greater than ours, respect it!
             const delay = this._robots.getCrawlDelay();
             if (delay && delay > this._delay) {
                 this._delay = delay;
             }
-
-            // Makes sure we are wanted
-            if (!this._robots.isAllowed(this._url.format(), USER_AGENT)) {
-                throw new Error('User-Agent not allowed by robots.txt')
-            }
+        } else {
+            log.debug('[crawler] No robots.txt');
         }
     }
 
