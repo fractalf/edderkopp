@@ -44,9 +44,9 @@ var _events = require('events');
 
 var _events2 = _interopRequireDefault(_events);
 
-var _url2 = require('url');
+var _url = require('url');
 
-var _url3 = _interopRequireDefault(_url2);
+var _url2 = _interopRequireDefault(_url);
 
 var _robotsParser = require('robots-parser');
 
@@ -88,7 +88,7 @@ var _class = function (_EventEmitter) {
         var _this = (0, _possibleConstructorReturn3.default)(this, (0, _getPrototypeOf2.default)(_class).call(this));
 
         _this._skipFiles = /jpg|jpeg|png|gif|bmp|tif|tiff|svg|pdf|wav|mpa|mp3|avi|flv|m4v|mov|mp4|mpg|swf|wmv|tar|gz|zip|rar|pkg|7z|xls|doc|log|odt|rtf|txt|exe|jar|com|bat/i;
-        _this._url = _url3.default.parse(url, true, true);
+        _this._url = _url2.default.parse(url, true, true);
 
         // Delay
         _this._delay = options.delay !== undefined ? options.delay : 5; // seconds
@@ -235,7 +235,7 @@ var _class = function (_EventEmitter) {
                                     }
 
                                     // Get data and tell 'handle-data' listeners about it
-                                    data = this._getData();
+                                    data = this._getData(url);
 
                                     if (data) {
                                         this.emit('handle-data', data);
@@ -314,7 +314,7 @@ var _class = function (_EventEmitter) {
 
     }, {
         key: '_getData',
-        value: function _getData() {
+        value: function _getData(url) {
             // Get data? Go through cases..
             var getData = false;
             if (this._mode == 'waterfall') {
@@ -369,26 +369,26 @@ var _class = function (_EventEmitter) {
                     var link = _step.value;
 
                     // Populate url object
-                    var _url = _url3.default.parse(link, false, true); // https://nodejs.org/api/url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost
+                    var url = _url2.default.parse(link, false, true); // https://nodejs.org/api/url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost
 
                     // Skip protocols other than http(s) (mailto, ftp, ..)
-                    if (_url.protocol && _url.protocol.indexOf('http') !== 0) {
+                    if (url.protocol && url.protocol.indexOf('http') !== 0) {
                         _log2.default.silly('[crawler] Skip: ' + link + ' (unsupported protocol)');
                         continue;
                     }
 
-                    if (!_url.hostname) {
+                    if (!url.hostname) {
                         // Set host if empty
-                        _url.hostname = this._url.hostname;
-                    } else if (_url.hostname != this._url.hostname) {
+                        url.hostname = this._url.hostname;
+                    } else if (url.hostname != this._url.hostname) {
                         // Skip different/external hosts
                         _log2.default.silly('[crawler] Skip: ' + link + ' (different host)');
                         continue;
                     }
 
-                    if (_url.pathname) {
+                    if (url.pathname) {
                         // Skip certain file types
-                        var matches = _url.pathname.match(/\.(\w{2,4})$/);
+                        var matches = url.pathname.match(/\.(\w{2,4})$/);
                         if (matches) {
                             if (matches[1].match(this._skipFiles) !== null) {
                                 _log2.default.silly('[crawler] Skip: ' + link + ' (file type)');
@@ -397,17 +397,17 @@ var _class = function (_EventEmitter) {
                         }
 
                         // Remove trailing slash (questionable, this can be improved?)
-                        _url.pathname = _url.pathname.replace(/\/$/, '');
+                        url.pathname = url.pathname.replace(/\/$/, '');
                     }
 
                     // Force protocol to same as this._url
-                    _url.protocol = this._url.protocol;
+                    url.protocol = this._url.protocol;
 
                     // Remove #hash
-                    _url.hash = null;
+                    url.hash = null;
 
                     // Build url
-                    var urlString = _url.format();
+                    var urlString = url.format();
 
                     // Skip handled links
                     if (this._cache.has(urlString)) {

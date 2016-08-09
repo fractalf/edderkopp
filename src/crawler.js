@@ -100,7 +100,7 @@ export default class extends EventEmitter {
                 }
 
                 // Get data and tell 'handle-data' listeners about it
-                let data = this._getData();
+                let data = this._getData(url);
                 if (data) {
                     this.emit('handle-data', data);
                 }
@@ -154,7 +154,7 @@ export default class extends EventEmitter {
     }
 
     // Get data by parsing html
-    _getData() {
+    _getData(url) {
         // Get data? Go through cases..
         let getData = false;
         if (this._mode == 'waterfall') {
