@@ -36,20 +36,20 @@ export default class {
     }
 
 
-    getLinks(follow = [ { elem: 'a' } ], skip = []) {
+    getLinks(link = [ { elem: 'a' } ], skip = []) {
         let $ = this._$;
         let links = [];
 
-        // Handle follow
-        if (!Array.isArray(follow)) {
-            follow = [ follow ];
+        // Handle link
+        if (!Array.isArray(link)) {
+            link = [ link ];
         }
 
         // Handle skip
         skip.push('a[rel=nofollow]');
 
-        for (let i = 0; i < follow.length; i++) {
-            let f = follow[i];
+        for (let i = 0; i < link.length; i++) {
+            let f = link[i];
             // Convert "shortcut" for regexp match to proper task
             // link: [ '<regexp>', .. ]
             if (typeof f === 'string') {

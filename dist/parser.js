@@ -67,22 +67,22 @@ var _class = function () {
         value: function getLinks() {
             var _this = this;
 
-            var follow = arguments.length <= 0 || arguments[0] === undefined ? [{ elem: 'a' }] : arguments[0];
+            var link = arguments.length <= 0 || arguments[0] === undefined ? [{ elem: 'a' }] : arguments[0];
             var skip = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
 
             var $ = this._$;
             var links = [];
 
-            // Handle follow
-            if (!Array.isArray(follow)) {
-                follow = [follow];
+            // Handle link
+            if (!Array.isArray(link)) {
+                link = [link];
             }
 
             // Handle skip
             skip.push('a[rel=nofollow]');
 
             var _loop = function _loop(i) {
-                var f = follow[i];
+                var f = link[i];
                 // Convert "shortcut" for regexp match to proper task
                 // link: [ '<regexp>', .. ]
                 if (typeof f === 'string') {
@@ -111,7 +111,7 @@ var _class = function () {
                 });
             };
 
-            for (var i = 0; i < follow.length; i++) {
+            for (var i = 0; i < link.length; i++) {
                 _loop(i);
             }
 

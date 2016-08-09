@@ -52,12 +52,12 @@ export default class extends EventEmitter {
         // Handle target
         this._mode = target.mode;
         this._path = target.path || '';
-        this._follow = target.follow;
+        this._link = target.link;
         this._skip = target.skip;
-        this._find = target.find;
-        this._get = target.get;
+        this._page = target.page;
+        this._data = target.data;
 
-        let url = u.resolve(this._url, this._path);
+        let url = this._url.protocol + '//' + this._url.hostname + this._path;
 
         // Init queue and add entry point
         this._queue.init();
@@ -124,25 +124,25 @@ export default class extends EventEmitter {
             getLinks = false;
         } else if (this._mode == 'waterfall') {
             var index = this._queue.depth - 1;
-            if (index == this._follow.length) {
+            if (index == this._link.length) {
                 getLinks = false;
             }
         }
 
         // Get links to crawl
-        let links;
+        let links = null;
         if (getLinks) {
 
-            // Handle follow rules
-            let follow;
+            // Handle link rules
+            let link;
             if (this._mode == 'waterfall') {
-                follow = this._follow[index];
-            } else if (this._follow) {
-                follow = this._follow;
+                link = this._link[index];
+            } else if (this._link) {
+                link = this._link;
             }
 
             // Get links
-            links = this._parser.getLinks(follow, this._skip);
+            links = this._parser.getLinks(link, this._skip);
             log.debug('[crawler] %d links found', links.length);
 
             // Validate links
@@ -150,7 +150,7 @@ export default class extends EventEmitter {
             log.debug('[crawler] %d links passed validation', links.length);
         }
 
-        return links && links.length ? links : false;
+        return links;
     }
 
     // Get data by parsing html
@@ -158,16 +158,16 @@ export default class extends EventEmitter {
         // Get data? Go through cases..
         let getData = false;
         if (this._mode == 'waterfall') {
-            if (this._follow.length + 1 === this._queue.depth) {
+            if (this._link.length + 1 === this._queue.depth) {
                 getData = true;
             }
-        } else if (this._find) {
-            if (typeof this._find === 'string') {
-                if (url.match(new RegExp(this._find))) {
+        } else if (this._page) {
+            if (typeof this._page === 'string') {
+                if (url.match(new RegExp(this._page))) {
                     getData = true;
                 }
             } else {
-                if (this._parser.find(this._find.elem)) {
+                if (this._parser.find(this._page.elem)) {
                     getData = true;
                 }
             }
@@ -178,10 +178,10 @@ export default class extends EventEmitter {
         let data;
         if (getData) {
             // Return parsed html if "get" is defined in config, else plain html
-            if (this._get) {
+            if (this._data) {
                 data = {};
-                for (let prop in this._get) {
-                    data[prop] = this._parser.getData(this._get[prop])
+                for (let prop in this._data) {
+                    data[prop] = this._parser.getData(this._data[prop])
                 }
             } else {
                 data = this._parser.html;
