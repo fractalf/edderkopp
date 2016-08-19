@@ -20,24 +20,9 @@ function get(arg) {
         return _getById(arg);
     } else if (arg.indexOf('http') !== -1) {
         return _getByUrl(arg);
-    } else if (/^[^/]+\.json$/.test(arg)) {
-        return _parse(_dir + '/' + arg);
     } else {
-        return _parse(arg);
+        return _getByFile(arg);
     }
-}
-
-// Recursivly find all files
-function _getFiles(dir) {
-    var files = [];
-    for (let file of fs.readdirSync(dir)) {
-        if (fs.statSync(dir + '/' + file).isDirectory()) {
-            files = files.concat(_getFiles(dir + '/' + file));
-        } else {
-            files.push(dir + '/' + file);
-        }
-    };
-    return files;
 }
 
 function _getById(id) {
@@ -56,11 +41,34 @@ function _getByUrl(url) {
     let hostname = u.parse(url).hostname;
     for (let file of _files) {
         let config = _parse(file);
-        if (hostname == u.parse(config.url.entry).hostname) {
+        if (config.url && config.url.entry && hostname == u.parse(config.url.entry).hostname) {
             return config;
         }
     }
     return false;
+}
+
+function _getByFile(f) {
+    _files = _files || _getFiles(_dir);
+    for (let file of _files) {
+        if (file.indexOf(f) > -1) {
+            return _parse(file);
+        }
+    }
+    return false;
+}
+
+// Recursivly find all files
+function _getFiles(dir) {
+    var files = [];
+    for (let file of fs.readdirSync(dir)) {
+        if (fs.statSync(dir + '/' + file).isDirectory()) {
+            files = files.concat(_getFiles(dir + '/' + file));
+        } else {
+            files.push(dir + '/' + file);
+        }
+    };
+    return files;
 }
 
 function _parse(file) {

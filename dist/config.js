@@ -42,28 +42,24 @@ function get(arg) {
         return _getById(arg);
     } else if (arg.indexOf('http') !== -1) {
         return _getByUrl(arg);
-    } else if (/^[^/]+\.json$/.test(arg)) {
-        return _parse(_dir + '/' + arg);
     } else {
-        return _parse(arg);
+        return _getByFile(arg);
     }
 }
 
-// Recursivly find all files
-function _getFiles(dir) {
-    var files = [];
+function _getById(id) {
+    _files = _files || _getFiles(_dir);
     var _iteratorNormalCompletion = true;
     var _didIteratorError = false;
     var _iteratorError = undefined;
 
     try {
-        for (var _iterator = (0, _getIterator3.default)(_fs2.default.readdirSync(dir)), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+        for (var _iterator = (0, _getIterator3.default)(_files), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
             var file = _step.value;
 
-            if (_fs2.default.statSync(dir + '/' + file).isDirectory()) {
-                files = files.concat(_getFiles(dir + '/' + file));
-            } else {
-                files.push(dir + '/' + file);
+            var match = file.match(/-(\d+)\./);
+            if (match && match[1] == id) {
+                return _parse(file);
             }
         }
     } catch (err) {
@@ -81,12 +77,12 @@ function _getFiles(dir) {
         }
     }
 
-    ;
-    return files;
+    return false;
 }
 
-function _getById(id) {
+function _getByUrl(url) {
     _files = _files || _getFiles(_dir);
+    var hostname = _url2.default.parse(url).hostname;
     var _iteratorNormalCompletion2 = true;
     var _didIteratorError2 = false;
     var _iteratorError2 = undefined;
@@ -95,9 +91,9 @@ function _getById(id) {
         for (var _iterator2 = (0, _getIterator3.default)(_files), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
             var file = _step2.value;
 
-            var match = file.match(/-(\d+)\./);
-            if (match && match[1] == id) {
-                return _parse(file);
+            var config = _parse(file);
+            if (config.url && config.url.entry && hostname == _url2.default.parse(config.url.entry).hostname) {
+                return config;
             }
         }
     } catch (err) {
@@ -118,9 +114,8 @@ function _getById(id) {
     return false;
 }
 
-function _getByUrl(url) {
+function _getByFile(f) {
     _files = _files || _getFiles(_dir);
-    var hostname = _url2.default.parse(url).hostname;
     var _iteratorNormalCompletion3 = true;
     var _didIteratorError3 = false;
     var _iteratorError3 = undefined;
@@ -129,9 +124,8 @@ function _getByUrl(url) {
         for (var _iterator3 = (0, _getIterator3.default)(_files), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
             var file = _step3.value;
 
-            var config = _parse(file);
-            if (hostname == _url2.default.parse(config.url.entry).hostname) {
-                return config;
+            if (file.indexOf(f) > -1) {
+                return _parse(file);
             }
         }
     } catch (err) {
@@ -150,6 +144,42 @@ function _getByUrl(url) {
     }
 
     return false;
+}
+
+// Recursivly find all files
+function _getFiles(dir) {
+    var files = [];
+    var _iteratorNormalCompletion4 = true;
+    var _didIteratorError4 = false;
+    var _iteratorError4 = undefined;
+
+    try {
+        for (var _iterator4 = (0, _getIterator3.default)(_fs2.default.readdirSync(dir)), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+            var file = _step4.value;
+
+            if (_fs2.default.statSync(dir + '/' + file).isDirectory()) {
+                files = files.concat(_getFiles(dir + '/' + file));
+            } else {
+                files.push(dir + '/' + file);
+            }
+        }
+    } catch (err) {
+        _didIteratorError4 = true;
+        _iteratorError4 = err;
+    } finally {
+        try {
+            if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                _iterator4.return();
+            }
+        } finally {
+            if (_didIteratorError4) {
+                throw _iteratorError4;
+            }
+        }
+    }
+
+    ;
+    return files;
 }
 
 function _parse(file) {
