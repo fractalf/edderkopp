@@ -12,10 +12,6 @@ var _regenerator = require('babel-runtime/regenerator');
 
 var _regenerator2 = _interopRequireDefault(_regenerator);
 
-var _promise = require('babel-runtime/core-js/promise');
-
-var _promise2 = _interopRequireDefault(_promise);
-
 var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
 
 var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
@@ -125,20 +121,10 @@ var _class = function (_EventEmitter) {
                                 _log2.default.silly(target);
 
                                 // Handle robots.txt
-                                _context.prev = 2;
-                                _context.next = 5;
+                                _context.next = 4;
                                 return this._robot();
 
-                            case 5:
-                                _context.next = 10;
-                                break;
-
-                            case 7:
-                                _context.prev = 7;
-                                _context.t0 = _context['catch'](2);
-                                return _context.abrupt('return', _promise2.default.reject(_context.t0));
-
-                            case 10:
+                            case 4:
 
                                 // Handle delay
                                 _download2.default.delay = this._delay;
@@ -149,7 +135,7 @@ var _class = function (_EventEmitter) {
                                 this._link = target.link;
                                 this._skip = target.skip;
                                 this._page = target.page;
-                                this._data = target.data;
+                                this._rule = target.rule;
 
                                 url = this._url.protocol + '//' + this._url.hostname + this._path;
 
@@ -165,12 +151,12 @@ var _class = function (_EventEmitter) {
                                 // Start crawling from queue
                                 return _context.abrupt('return', this._crawl());
 
-                            case 23:
+                            case 17:
                             case 'end':
                                 return _context.stop();
                         }
                     }
-                }, _callee, this, [[2, 7]]);
+                }, _callee, this);
             }));
 
             function start(_x2) {
@@ -337,19 +323,11 @@ var _class = function (_EventEmitter) {
 
             var data = void 0;
             if (getData) {
-                // Return parsed html if "get" is defined in config, else plain html
-                if (this._data) {
-                    data = {};
-                    for (var prop in this._data) {
-                        data[prop] = this._parser.getData(this._data[prop]);
-                    }
-                } else {
-                    data = this._parser.html;
-                }
+                // Return parsed html if 'data' is defined in config or plain html of not
+                data = this._rule ? this._parser.getData(this._rule) : this._parser.html;
             } else {
                 data = false;
             }
-
             return data;
         }
 
@@ -369,7 +347,7 @@ var _class = function (_EventEmitter) {
                     var link = _step.value;
 
                     // Populate url object
-                    var url = _url2.default.parse(link, false, true); // https://nodejs.org/api/url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost
+                    var url = _url2.default.parse(link, true, true); // https://nodejs.org/api/url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost
 
                     // Skip protocols other than http(s) (mailto, ftp, ..)
                     if (url.protocol && url.protocol.indexOf('http') !== 0) {
@@ -403,8 +381,8 @@ var _class = function (_EventEmitter) {
                     // Force protocol to same as this._url
                     url.protocol = this._url.protocol;
 
-                    // Remove #hash
-                    url.hash = null;
+                    // Remove #hash, ?utm_*, etc
+                    this._cleanUrl(url);
 
                     // Build url
                     var urlString = url.format();
@@ -443,6 +421,27 @@ var _class = function (_EventEmitter) {
 
             ;
             return result;
+        }
+
+        // Remove #hask, ?utm_source=foobar, etc
+
+    }, {
+        key: '_cleanUrl',
+        value: function _cleanUrl(url) {
+            // Remove #hash
+            url.hash = null;
+
+            // Remove utm_* from query
+            url.search = null;
+            var query = {};
+            for (var prop in url.query) {
+                if (!prop.match(/utm_/)) {
+                    query[prop] = url.query[prop];
+                }
+            }
+            url.query = query;
+
+            return _url2.default.parse(url.format(), true, true);
         }
 
         // Handle robots.txt
@@ -492,7 +491,7 @@ var _class = function (_EventEmitter) {
 
                                 // Makes sure we are wanted
 
-                                if (this._robots.isAllowed(this._url.format(), USER_AGENT)) {
+                                if (!this._robots.isDisallowed(this._url.format(), USER_AGENT)) {
                                     _context3.next = 17;
                                     break;
                                 }

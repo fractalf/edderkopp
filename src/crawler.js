@@ -40,11 +40,7 @@ export default class extends EventEmitter {
         log.silly(target);
 
         // Handle robots.txt
-        try {
-            await this._robot();
-        } catch (err) {
-            return Promise.reject(err);
-        }
+        await this._robot();
 
         // Handle delay
         Download.delay = this._delay;
@@ -55,7 +51,7 @@ export default class extends EventEmitter {
         this._link = target.link;
         this._skip = target.skip;
         this._page = target.page;
-        this._data = target.data;
+        this._rule = target.rule;
 
         let url = this._url.protocol + '//' + this._url.hostname + this._path;
 
@@ -177,19 +173,11 @@ export default class extends EventEmitter {
 
         let data;
         if (getData) {
-            // Return parsed html if "get" is defined in config, else plain html
-            if (this._data) {
-                data = {};
-                for (let prop in this._data) {
-                    data[prop] = this._parser.getData(this._data[prop])
-                }
-            } else {
-                data = this._parser.html;
-            }
+            // Return parsed html if 'data' is defined in config or plain html of not
+            data = this._rule ? this._parser.getData(this._rule) : this._parser.html;
         } else {
             data = false;
         }
-
         return data;
     }
 
@@ -199,7 +187,7 @@ export default class extends EventEmitter {
         // let uri = new URI();
         for (let link of links) {
             // Populate url object
-            let url = u.parse(link, false, true); // https://nodejs.org/api/url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost
+            let url = u.parse(link, true, true); // https://nodejs.org/api/url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost
 
             // Skip protocols other than http(s) (mailto, ftp, ..)
             if (url.protocol && url.protocol.indexOf('http') !== 0) {
@@ -233,8 +221,8 @@ export default class extends EventEmitter {
             // Force protocol to same as this._url
             url.protocol = this._url.protocol;
 
-            // Remove #hash
-            url.hash = null;
+            // Remove #hash, ?utm_*, etc
+            this._cleanUrl(url);
 
             // Build url
             let urlString = url.format();
@@ -259,6 +247,24 @@ export default class extends EventEmitter {
         return result;
     }
 
+    // Remove #hask, ?utm_source=foobar, etc
+    _cleanUrl(url) {
+        // Remove #hash
+        url.hash = null;
+
+        // Remove utm_* from query
+        url.search = null;
+        let query = {};
+        for (let prop in url.query) {
+            if (!prop.match(/utm_/)) {
+                query[prop] = url.query[prop];
+            }
+        }
+        url.query = query;
+
+        return u.parse(url.format(), true, true);
+    }
+
     // Handle robots.txt
     async _robot() {
         if (this._robots) {
@@ -279,7 +285,7 @@ export default class extends EventEmitter {
             this._robots = robotsParser(url, content);
 
             // Makes sure we are wanted
-            if (!this._robots.isAllowed(this._url.format(), USER_AGENT)) {
+            if (this._robots.isDisallowed(this._url.format(), USER_AGENT)) {
                 throw new Error('User-Agent not allowed by robots.txt')
             }
 
