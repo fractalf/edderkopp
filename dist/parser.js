@@ -24,11 +24,9 @@ var _log = require('./log');
 
 var _log2 = _interopRequireDefault(_log);
 
-var _parserTasks = require('./parser-tasks');
+var _tasks = require('./tasks');
 
-var parserTasks = _interopRequireWildcard(_parserTasks);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+var _tasks2 = _interopRequireDefault(_tasks);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -82,18 +80,18 @@ var _class = function () {
             skip.push('a[rel=nofollow]');
 
             var _loop = function _loop(i) {
-                var f = link[i];
+                var l = link[i];
                 // Convert "shortcut" for regexp match to proper task
                 // link: [ '<regexp>', .. ]
-                if (typeof f === 'string') {
-                    f = { task: ['match', f] };
+                if (typeof l === 'string') {
+                    l = { task: ['match', l] };
                 }
-                if (!f.elem) {
-                    f.elem = 'a';
+                if (!l.elem) {
+                    l.elem = 'a';
                 }
 
                 // Handle skip => add :not(<skip>) to selectors
-                var selector = f.elem.split(',');
+                var selector = l.elem.split(',');
                 for (var j = 0; j < selector.length; j++) {
                     selector[j] += ':not(' + skip.join(',') + ')';
                 }
@@ -101,12 +99,19 @@ var _class = function () {
 
                 // Find stuff
                 $(selector).each(function (i, elem) {
-                    var url = $(elem).attr('href').trim();
-                    if (url && f.task) {
-                        url = _this._runTasks(f.task, url);
+                    // Skip if no href attribute
+                    var href = $(elem).attr('href');
+                    if (!href) {
+                        return;
+                    }
+
+                    // Trim and run tasks
+                    var url = href.trim();
+                    if (url && l.task) {
+                        url = _this._runTasks(l.task, url);
                     }
                     if (url) {
-                        links.push(url);
+                        links = [].concat(links, url); // because url can be string or array..
                     }
                 });
             };
@@ -260,7 +265,7 @@ var _class = function () {
             }
 
             // No need to wrap single/empty values in an array
-            if (values.length <= 1) {
+            if (values && values.length <= 1) {
                 values = values.length == 1 ? values.pop() : null;
             }
 
@@ -297,7 +302,7 @@ var _class = function () {
                     var task = _step.value;
 
                     var name = task[0];
-                    if (parserTasks[name]) {
+                    if (_tasks2.default[name]) {
                         var args = task.slice(1);
                         var tmp = [];
                         var _iteratorNormalCompletion2 = true;
@@ -308,7 +313,7 @@ var _class = function () {
                             for (var _iterator2 = (0, _getIterator3.default)(values), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
                                 var value = _step2.value;
 
-                                var res = parserTasks[name](args, value);
+                                var res = _tasks2.default[name](args, value);
                                 if (res) {
                                     tmp = tmp.concat(res);
                                 }
@@ -356,9 +361,6 @@ var _class = function () {
             }
             return values;
         }
-
-        // Support custom tasks
-
     }, {
         key: 'html',
         get: function get() {
@@ -366,16 +368,6 @@ var _class = function () {
         },
         set: function set(html) {
             this._load(html);
-        }
-    }], [{
-        key: 'injectTasks',
-        value: function injectTasks(customTasks) {
-            for (var prop in customTasks) {
-                if (parserTasks[prop]) {
-                    _log2.default.warn('[parser] Overriding task: ' + prop);
-                }
-                parserTasks[prop] = customTasks[prop];
-            }
         }
     }]);
     return _class;

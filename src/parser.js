@@ -1,6 +1,6 @@
 import cheerio from "cheerio";
 import log from './log';
-import * as parserTasks from './parser-tasks';
+import allTasks from './tasks';
 
 // Parser
 export default class {
@@ -49,18 +49,18 @@ export default class {
         skip.push('a[rel=nofollow]');
 
         for (let i = 0; i < link.length; i++) {
-            let f = link[i];
+            let l = link[i];
             // Convert "shortcut" for regexp match to proper task
             // link: [ '<regexp>', .. ]
-            if (typeof f === 'string') {
-                f = { task: [ 'match', f ] };
+            if (typeof l === 'string') {
+                l = { task: [ 'match', l ] };
             }
-            if (!f.elem) {
-                f.elem = 'a';
+            if (!l.elem) {
+                l.elem = 'a';
             }
 
             // Handle skip => add :not(<skip>) to selectors
-            let selector =  f.elem.split(',');
+            let selector =  l.elem.split(',');
             for (let j = 0; j < selector.length; j++) {
                 selector[j] += ':not(' + skip.join(',') + ')';
             }
@@ -68,12 +68,19 @@ export default class {
 
             // Find stuff
             $(selector).each((i, elem) => {
-                let url = $(elem).attr('href').trim();
-                if (url && f.task) {
-                    url = this._runTasks(f.task, url);
+                // Skip if no href attribute
+                let href = $(elem).attr('href');
+                if (!href) {
+                    return;
+                }
+
+                // Trim and run tasks
+                let url = href.trim();
+                if (url && l.task) {
+                    url = this._runTasks(l.task, url);
                 }
                 if (url) {
-                    links.push(url);
+                    links = [].concat(links, url); // because url can be string or array..
                 }
             });
 
@@ -204,7 +211,7 @@ export default class {
         }
 
         // No need to wrap single/empty values in an array
-        if (values.length <= 1) {
+        if (values && values.length <= 1) {
             values = values.length == 1 ? values.pop() : null;
         }
 
@@ -231,11 +238,11 @@ export default class {
         // Run tasks and pipe result from one to the next
         for (let task of tasks) {
             let name = task[0];
-            if (parserTasks[name]) {
+            if (allTasks[name]) {
                 let args = task.slice(1);
                 let tmp = [];
                 for (let value of values) {
-                    let res = parserTasks[name](args, value);
+                    let res = allTasks[name](args, value);
                     if (res) {
                         tmp = tmp.concat(res);
                     }
@@ -252,15 +259,5 @@ export default class {
             values = values.length == 1 ? values.pop() : null;
         }
         return values;
-    }
-
-    // Support custom tasks
-    static injectTasks(customTasks) {
-        for (var prop in customTasks) {
-            if (parserTasks[prop]) {
-                log.warn('[parser] Overriding task: ' + prop);
-            }
-            parserTasks[prop] = customTasks[prop];
-        }
     }
 }
