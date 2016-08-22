@@ -1,6 +1,6 @@
 import cheerio from "cheerio";
 import log from './log';
-import allTasks from './tasks';
+import Tasks from './tasks';
 
 // Parser
 export default class {
@@ -227,11 +227,11 @@ export default class {
         // Run tasks and pipe result from one to the next
         for (let task of tasks) {
             let name = task[0];
-            if (allTasks[name]) {
+            if (Tasks.has(name)) {
                 let args = task.slice(1);
                 let tmp = [];
                 for (let value of values) {
-                    let res = allTasks[name](args, value);
+                    let res = Tasks.run(name, value, args);
                     if (res) {
                         tmp = tmp.concat(res);
                     }

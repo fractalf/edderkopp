@@ -14,124 +14,114 @@ var _createClass3 = _interopRequireDefault(_createClass2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var Tasks = function () {
-    function Tasks() {
-        (0, _classCallCheck3.default)(this, Tasks);
+var _class = function () {
+    function _class() {
+        (0, _classCallCheck3.default)(this, _class);
     }
 
-    (0, _createClass3.default)(Tasks, [{
+    (0, _createClass3.default)(_class, null, [{
         key: 'inject',
         value: function inject(tasks) {
             for (var prop in tasks) {
-                if (this[prop]) {
+                if (this._tasks[prop]) {
                     log.warn('[parser] Overriding task: ' + prop);
                 }
-                this[prop] = tasks[prop];
+                this._tasks[prop] = tasks[prop];
             }
         }
-
-        // task: 'js'
-
     }, {
-        key: 'js',
-        value: function js(args, value) {
-            return eval(value);
+        key: 'run',
+        value: function run(task, value, args) {
+            return this._tasks[task](value, args);
+        }
+    }, {
+        key: 'has',
+        value: function has(task) {
+            return !!this._tasks[task];
         }
 
-        // task: 'json'
+        // Default tasks
 
-    }, {
-        key: 'json',
-        value: function json(args, value) {
-            return JSON.parse(value);
-        }
-
-        // task: [ 'match', '\\/(\\w+)-(\\d+)' ] => returns value or null
-        // task: [ 'match', '\\/(\\w+)-(\\d+)', 2 ] => returns matches[2] or null
-
-    }, {
-        key: 'match',
-        value: function match(args, value) {
-            var matches = value.match(new RegExp(args[0]));
-            if (matches) {
-                return args[1] === undefined ? value : matches[args[1]];
-            } else {
-                return null;
-            }
-        }
-
-        // task: [ 'prepend',  'http://foo.bar/' ]
-
-    }, {
-        key: 'prepend',
-        value: function prepend(args, value) {
-            return args[0] + value;
-        }
-
-        // task: [ 'append',  '&foo=bar' ]
-
-    }, {
-        key: 'append',
-        value: function append(args, value) {
-            return value + args[0];
-        }
-
-        // task: [ 'split',  '&foo=bar' ]
-
-    }, {
-        key: 'split',
-        value: function split(args, value) {
-            return value.split(args[0]);
-        }
-
-        // Replace a with b in c supporting arrays
-        // task: [ 'replace',  'foo', 'bar' ]
-        // task: [ 'replace',  [ 'a', 'b' ],  [ 'c', 'e' ] ]
-        // task: [ 'replace',  '[\\r\\n\\t\\s]+', '', 'regexp' ]
-
-    }, {
-        key: 'replace',
-        value: function replace(args, value) {
-            var s = args[0]; // search for
-            var r = args[1]; // replace with
-            var re = args[2]; // optional regexp
-            if (typeof s == 'string' && typeof r == 'string') {
-                s = [s];
-                r = [r];
-            }
-            var pattern;
-            for (var i = 0; i < s.length; i++) {
-                pattern = re == 'regexp' ? new RegExp(s[i], 'g') : s[i];
-                value = value.replace(pattern, r[i]);
-            }
-            return value;
-        }
-
-        // task: 'parseInt'
-
-    }, {
-        key: 'parseInt',
-        value: function (_parseInt) {
-            function parseInt(_x, _x2) {
-                return _parseInt.apply(this, arguments);
-            }
-
-            parseInt.toString = function () {
-                return _parseInt.toString();
-            };
-
-            return parseInt;
-        }(function (args, value) {
-            if (typeof value === 'number') {
-                return value;
-            }
-            value = value ? value.replace(/[^\d]/g, '') : null;
-            return value ? parseInt(value, 10) : null;
-        })
     }]);
-    return Tasks;
+    return _class;
 }();
 
-var tasks = new Tasks();
-exports.default = tasks;
+_class._tasks = {
+    // task: [ 'js', '((v)=>{ return "custom"+v;})(value)' ]
+    js: function js(value, args) {
+        return eval(args[0]);
+    },
+
+    // task: 'json'
+    json: function json(value) {
+        return JSON.parse(value);
+    },
+
+    // task: [ 'match', '\\/(\\w+)-(\\d+)' ] => returns value or null
+    // task: [ 'match', '\\/(\\w+)-(\\d+)', 2 ] => returns matches[2] or null
+    match: function match(value, args) {
+        var matches = value.match(new RegExp(args[0]));
+        if (matches) {
+            return args[1] === undefined ? value : matches[args[1]];
+        } else {
+            return null;
+        }
+    },
+
+    // task: [ 'prepend',  'http://foo.bar/' ]
+    prepend: function prepend(value, args) {
+        return args[0] + value;
+    },
+
+    // task: [ 'append',  '&foo=bar' ]
+    append: function append(value, args) {
+        return value + args[0];
+    },
+
+    // task: [ 'split',  '&foo=bar' ]
+    split: function split(value, args) {
+        return value.split(args[0]);
+    },
+
+    // Replace a with b in c supporting arrays
+    // task: [ 'replace',  'foo', 'bar' ]
+    // task: [ 'replace',  [ 'a', 'b' ],  [ 'c', 'e' ] ]
+    // task: [ 'replace',  '[\\r\\n\\t\\s]+', '', 'regexp' ]
+    replace: function replace(value, args) {
+        var s = args[0]; // search for
+        var r = args[1]; // replace with
+        var re = args[2]; // optional regexp
+        if (typeof s == 'string' && typeof r == 'string') {
+            s = [s];
+            r = [r];
+        }
+        var pattern;
+        for (var i = 0; i < s.length; i++) {
+            pattern = re == 'regexp' ? new RegExp(s[i], 'g') : s[i];
+            value = value.replace(pattern, r[i]);
+        }
+        return value;
+    },
+
+    // task: 'parseInt'
+    parseInt: function (_parseInt) {
+        function parseInt(_x) {
+            return _parseInt.apply(this, arguments);
+        }
+
+        parseInt.toString = function () {
+            return _parseInt.toString();
+        };
+
+        return parseInt;
+    }(function (value) {
+        if (typeof value === 'number') {
+            return value;
+        }
+        value = value ? value.replace(/[^\d]/g, '') : null;
+        return value ? parseInt(value, 10) : null;
+    })
+
+};
+exports.default = _class;
 //# sourceMappingURL=tasks.js.map

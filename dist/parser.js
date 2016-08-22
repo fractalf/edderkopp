@@ -290,7 +290,7 @@ var _class = function () {
                     var task = _step.value;
 
                     var name = task[0];
-                    if (_tasks2.default[name]) {
+                    if (_tasks2.default.has(name)) {
                         var args = task.slice(1);
                         var tmp = [];
                         var _iteratorNormalCompletion2 = true;
@@ -301,7 +301,7 @@ var _class = function () {
                             for (var _iterator2 = (0, _getIterator3.default)(values), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
                                 var value = _step2.value;
 
-                                var res = _tasks2.default[name](args, value);
+                                var res = _tasks2.default.run(name, value, args);
                                 if (res) {
                                     tmp = tmp.concat(res);
                                 }
