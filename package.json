@@ -34,7 +34,6 @@
   "homepage": "https://github.com/fractalf/edderkopp",
   "dependencies": {
     "babel-plugin-transform-runtime": "^6.9.0",
-    "blueimp-md5": "^2.3.0",
     "cheerio": "^0.20.0",
     "request": "^2.72.0",
     "robots-parser": "^1.0.0",

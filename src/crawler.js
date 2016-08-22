@@ -6,7 +6,6 @@ import log from './log';
 import Download from "./download";
 import Parser from "./parser";
 import Queue from './queue';
-import Cache from './cache';
 
 // Crawler
 export default class extends EventEmitter {
@@ -25,10 +24,6 @@ export default class extends EventEmitter {
 
         // Use Queue to handle links
         this._queue = new Queue({ maxItems: options.maxItems, maxDepth: options.maxDepth });
-
-        // Use Cache to not handle an url more than once
-        this._cache = new Cache();
-
     }
 
     // Start crawling!
@@ -56,9 +51,9 @@ export default class extends EventEmitter {
         this._queue.init();
         this._queue.add(url);
 
-        // Init cache and set entry point
-        this._cache.init();
-        this._cache.set(url);
+        // Init visited (used so we don't crawl same url more than once)
+        this._visited = {};
+        this._visited[url] = true;
 
         // Start crawling from queue
         return this._crawl();
@@ -235,11 +230,11 @@ export default class extends EventEmitter {
             let urlString = url.format();
 
             // Skip handled links
-            if (this._cache.has(urlString)) {
-                log.silly('[crawler] Skip: ' + link + ' (found in cache)');
+            if (this._visited[urlString]) {
+                log.silly('[crawler] Skip: ' + link + ' (already visited)');
                 continue;
             } else {
-                this._cache.set(urlString);
+                this._visited[urlString] = true;
             }
 
             // Check robots.txt

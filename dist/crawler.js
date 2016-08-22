@@ -64,10 +64,6 @@ var _queue = require('./queue');
 
 var _queue2 = _interopRequireDefault(_queue);
 
-var _cache = require('./cache');
-
-var _cache2 = _interopRequireDefault(_cache);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // Crawler
@@ -91,10 +87,6 @@ var _class = function (_EventEmitter) {
 
         // Use Queue to handle links
         _this._queue = new _queue2.default({ maxItems: options.maxItems, maxDepth: options.maxDepth });
-
-        // Use Cache to not handle an url more than once
-        _this._cache = new _cache2.default();
-
         return _this;
     }
 
@@ -141,9 +133,9 @@ var _class = function (_EventEmitter) {
                                 this._queue.init();
                                 this._queue.add(url);
 
-                                // Init cache and set entry point
-                                this._cache.init();
-                                this._cache.set(url);
+                                // Init visited (used so we don't crawl same url more than once)
+                                this._visited = {};
+                                this._visited[url] = true;
 
                                 // Start crawling from queue
                                 return _context.abrupt('return', this._crawl());
@@ -397,11 +389,11 @@ var _class = function (_EventEmitter) {
                     var urlString = url.format();
 
                     // Skip handled links
-                    if (this._cache.has(urlString)) {
-                        _log2.default.silly('[crawler] Skip: ' + link + ' (found in cache)');
+                    if (this._visited[urlString]) {
+                        _log2.default.silly('[crawler] Skip: ' + link + ' (already visited)');
                         continue;
                     } else {
-                        this._cache.set(urlString);
+                        this._visited[urlString] = true;
                     }
 
                     // Check robots.txt
