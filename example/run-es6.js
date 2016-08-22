@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // NOTE!
-// This example requires devDependencies
+// This example requires that you have installed devDependencies (or "babel-cli" and "babel-preset-es2015" to be spesific)
 // Transpile or run directly with "npm run example" (se package.json)
 
 import fs from 'fs';

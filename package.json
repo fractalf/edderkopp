@@ -1,7 +1,7 @@
 {
   "name": "edderkopp",
-  "version": "1.0.0-alpha",
-  "description": "Crawl and scrape webpages for data using simple json config files",
+  "version": "1.0.0-beta",
+  "description": "Crawl/scrape webpages using simple config files",
   "main": "dist/index.js",
   "scripts": {
     "build": "babel src -d dist -s",
@@ -22,9 +22,13 @@
     "url": "git+https://github.com/fractalf/edderkopp.git"
   },
   "keywords": [
+    "spider",
     "crawler",
     "es6",
-    "es2015"
+    "es7",
+    "es2015",
+    "es2016",
+    "babel"
   ],
   "author": "Alf Marius Foss Olsen <alfm@arius.in>",
   "license": "MIT",
