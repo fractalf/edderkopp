@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
-// NOTE! Run this with "npm run example" (se package.json) or transpile it with babel
+// NOTE!
+// This example requires devDependencies
+// Transpile or run directly with "npm run example" (se package.json)
+
 import fs from 'fs';
 import { log, config, Parser } from "../dist";
 
+Parser.html = fs.readFileSync(__dirname + '/site.html').toString();
 const conf = config.get(__dirname + '/site.json');
-const html = fs.readFileSync(__dirname + '/site.html').toString();
-const parser = new Parser(html);
-// parser.includeNull = false;
-const data = parser.getData(conf.pages.somePage);
-log.info(data);
+log.info(Parser.getData(conf.rules.foobar));
