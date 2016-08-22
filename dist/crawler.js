@@ -92,9 +92,6 @@ var _class = function (_EventEmitter) {
         // Use Queue to handle links
         _this._queue = new _queue2.default({ maxItems: options.maxItems, maxDepth: options.maxDepth });
 
-        // Use Parser to get links and data
-        _this._parser = new _parser2.default();
-
         // Use Cache to not handle an url more than once
         _this._cache = new _cache2.default();
 
@@ -223,7 +220,7 @@ var _class = function (_EventEmitter) {
 
                                 // Get links and data
                                 if (content) {
-                                    this._parser.html = content;
+                                    _parser2.default.html = content;
 
                                     // Get links and add to queue
                                     links = this._getLinks();
@@ -297,7 +294,7 @@ var _class = function (_EventEmitter) {
                 }
 
                 // Get links
-                links = this._parser.getLinks(link, this._skip);
+                links = _parser2.default.getLinks(link, this._skip);
                 _log2.default.debug('[crawler] %d links found', links.length);
 
                 // Validate links
@@ -325,7 +322,7 @@ var _class = function (_EventEmitter) {
                         getData = true;
                     }
                 } else {
-                    if (this._parser.find(this._page.elem)) {
+                    if (_parser2.default.find(this._page.elem)) {
                         getData = true;
                     }
                 }
@@ -336,7 +333,7 @@ var _class = function (_EventEmitter) {
             var data = void 0;
             if (getData) {
                 // Return parsed html if 'data' is defined in config or plain html of not
-                data = this._rule ? this._parser.getData(this._rule) : this._parser.html;
+                data = this._rule ? _parser2.default.getData(this._rule) : _parser2.default.html;
             } else {
                 data = false;
             }

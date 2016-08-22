@@ -32,33 +32,16 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 // Parser
 var _class = function () {
-    // Keep values=null in dataset
-
-    function _class(html) {
+    function _class() {
         (0, _classCallCheck3.default)(this, _class);
-        this.includeNull = true;
-
-        if (html) {
-            this._load(html);
-        }
+        this._includeNull = true;
     }
 
-    (0, _createClass3.default)(_class, [{
-        key: '_load',
-        value: function _load(html) {
-            this._html = html;
-            this._$ = _cheerio2.default.load(html);
-        }
-    }, {
+    (0, _createClass3.default)(_class, null, [{
         key: 'find',
         value: function find(selector) {
             var $ = this._$;
             return !!$(selector).length;
-        }
-    }, {
-        key: 'getData',
-        value: function getData(rules) {
-            return this._recParse(rules);
         }
     }, {
         key: 'getLinks',
@@ -122,6 +105,11 @@ var _class = function () {
 
             return links;
         }
+    }, {
+        key: 'getData',
+        value: function getData(rules) {
+            return this._recParse(rules);
+        }
 
         // Recursively parse DOM
 
@@ -164,7 +152,7 @@ var _class = function () {
                             data[rule.name] = rule.data[1];
                         } else {
                             var values = _this2._getContent($elem, rule);
-                            if (values !== null || _this2.includeNull) {
+                            if (values !== null || _this2._includeNull) {
                                 // Join values with same name
                                 data[rule.name] = data[rule.name] ? [].concat(data[rule.name], values) : values;
                             }
@@ -363,11 +351,14 @@ var _class = function () {
         }
     }, {
         key: 'html',
+        // Keep values=null in dataset
+
         get: function get() {
             return this._html;
         },
         set: function set(html) {
-            this._load(html);
+            this._html = html;
+            this._$ = _cheerio2.default.load(html);
         }
     }]);
     return _class;

@@ -5,38 +5,23 @@ import allTasks from './tasks';
 // Parser
 export default class {
 
-    includeNull = true; // Keep values=null in dataset
+    _includeNull = true; // Keep values=null in dataset
 
-    constructor(html) {
-        if (html) {
-            this._load(html);
-        }
-    }
-
-    get html() {
+    static get html() {
         return this._html;
     }
 
-    set html(html) {
-        this._load(html);
-    }
-
-    _load(html) {
+    static set html(html) {
         this._html = html;
         this._$ = cheerio.load(html);
     }
 
-    find(selector) {
+    static find(selector) {
         let $ = this._$;
         return !!$(selector).length
     }
 
-    getData(rules) {
-        return this._recParse(rules);
-    }
-
-
-    getLinks(link = [ { elem: 'a' } ], skip = []) {
+    static getLinks(link = [ { elem: 'a' } ], skip = []) {
         let $ = this._$;
         let links = [];
 
@@ -89,8 +74,12 @@ export default class {
         return links;
     }
 
+    static getData(rules) {
+        return this._recParse(rules);
+    }
+
     // Recursively parse DOM
-    _recParse(rules, data, $container) {
+    static _recParse(rules, data, $container) {
         let $ = this._$;
         data = data || {};
         for (let i = 0; i < rules.length; i++) {
@@ -123,7 +112,7 @@ export default class {
                         data[rule.name] = rule.data[1];
                     } else {
                         const values = this._getContent($elem, rule);
-                        if (values !== null || this.includeNull) {
+                        if (values !== null || this._includeNull) {
                             // Join values with same name
                             data[rule.name] = data[rule.name] ? [].concat(data[rule.name], values) : values;
                         }
@@ -139,7 +128,7 @@ export default class {
     }
 
     // Get values
-    _getContent($elem, rule) {
+    static _getContent($elem, rule) {
         let $ = this._$;
         let value, values = [];
         const dataType = Array.isArray(rule.data) ? rule.data[0] : rule.data;
@@ -218,7 +207,7 @@ export default class {
         return values;
     }
 
-    _runTasks(tasks, values) {
+    static _runTasks(tasks, values) {
         // Code handles multiple values
         if (typeof values == 'string') {
             values = [ values ];

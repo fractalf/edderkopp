@@ -26,9 +26,6 @@ export default class extends EventEmitter {
         // Use Queue to handle links
         this._queue = new Queue({ maxItems: options.maxItems, maxDepth: options.maxDepth });
 
-        // Use Parser to get links and data
-        this._parser = new Parser();
-
         // Use Cache to not handle an url more than once
         this._cache = new Cache();
 
@@ -97,7 +94,7 @@ export default class extends EventEmitter {
 
             // Get links and data
             if (content) {
-                this._parser.html = content;
+                Parser.html = content;
 
                 // Get links and add to queue
                 let links = this._getLinks();
@@ -148,7 +145,7 @@ export default class extends EventEmitter {
             }
 
             // Get links
-            links = this._parser.getLinks(link, this._skip);
+            links = Parser.getLinks(link, this._skip);
             log.debug('[crawler] %d links found', links.length);
 
             // Validate links
@@ -173,7 +170,7 @@ export default class extends EventEmitter {
                     getData = true;
                 }
             } else {
-                if (this._parser.find(this._page.elem)) {
+                if (Parser.find(this._page.elem)) {
                     getData = true;
                 }
             }
@@ -184,7 +181,7 @@ export default class extends EventEmitter {
         let data;
         if (getData) {
             // Return parsed html if 'data' is defined in config or plain html of not
-            data = this._rule ? this._parser.getData(this._rule) : this._parser.html;
+            data = this._rule ? Parser.getData(this._rule) : Parser.html;
         } else {
             data = false;
         }
