@@ -34,7 +34,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 var _class = function () {
     function _class() {
         (0, _classCallCheck3.default)(this, _class);
-        this._includeNull = true;
     }
 
     (0, _createClass3.default)(_class, null, [{
@@ -152,7 +151,7 @@ var _class = function () {
                             data[rule.name] = rule.data[1];
                         } else {
                             var values = _this2._getContent($elem, rule);
-                            if (values !== null || _this2._includeNull) {
+                            if (values !== null || _this2.includeNull) {
                                 // Join values with same name
                                 data[rule.name] = data[rule.name] ? [].concat(data[rule.name], values) : values;
                             }
@@ -364,5 +363,6 @@ var _class = function () {
     return _class;
 }();
 
+_class.includeNull = true;
 exports.default = _class;
 //# sourceMappingURL=parser.js.map

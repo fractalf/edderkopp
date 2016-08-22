@@ -16,11 +16,13 @@ function dir(dir) {
 }
 
 function get(arg) {
-    if (Number.isInteger(arg)) {
+    if (Number.isInteger(arg)) { // support id in filename (ex: configfile-<id>.js)
         return _getById(arg);
-    } else if (arg.indexOf('http') !== -1) {
+    } else if (arg.indexOf('http') !== -1) { // support url (will look for the url property in all config files)
         return _getByUrl(arg);
-    } else {
+    } else if (arg.indexOf('/') !== -1) { // support full path of file (ex: /home/user/config.js)
+        return _parse(arg);
+    } else { // support recursive search for config file in dir. return first found (ex: configfile.js)
         return _getByFile(arg);
     }
 }

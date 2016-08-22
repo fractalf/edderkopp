@@ -5,7 +5,7 @@ import Tasks from './tasks';
 // Parser
 export default class {
 
-    _includeNull = true; // Keep values=null in dataset
+    static includeNull = true; // Keep values=null in dataset
 
     static get html() {
         return this._html;
@@ -112,7 +112,7 @@ export default class {
                         data[rule.name] = rule.data[1];
                     } else {
                         const values = this._getContent($elem, rule);
-                        if (values !== null || this._includeNull) {
+                        if (values !== null || this.includeNull) {
                             // Join values with same name
                             data[rule.name] = data[rule.name] ? [].concat(data[rule.name], values) : values;
                         }
