@@ -4,7 +4,7 @@ import log from './log';
 export default class {
 
     _timeout = 60000;
-    _first = false; // used for delay
+    _delay = 0;
 
     static get(url, cookies) {
         if (cookies) {
@@ -15,17 +15,16 @@ export default class {
         }
 
         if (this._cache && this._cache.has(url)) {
-            log.verbose('[download] %s - CACHED ', url);
+            log.verbose('[download] %s (CACHED) ', url);
             return Promise.resolve(this._cache.get(url));
         } else {
             return (async () => {
-                if (this._first) {
-                    log.debug('[download] wait %s s', this._delay);
+                if (this._delay) {
+                    log.verbose('[download] %s (wait %s s)', url, this._delay.toFixed(1));
                     await new Promise(resolve => setTimeout(resolve, this._delay * 1000));
                 } else {
-                    this._first = true;
+                    log.verbose('[download] %s', url);
                 }
-                log.verbose('[download] %s', url);
                 return await this._download(url);
             })();
         }
@@ -59,6 +58,7 @@ export default class {
                     let size = (response.socket.bytesRead / 1024).toFixed(2) + ' KB';
                     let gzip = response.headers['content-encoding'] == 'gzip';
 
+                    log.debug('[download] %s (done)', url);
                     log.silly(response.headers);
                     log.debug('[download] size: %s (%s)', size, gzip ? 'gzip' : 'uncompressed');
                     log.debug('[download] time: ' + time);

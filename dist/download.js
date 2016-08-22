@@ -42,13 +42,11 @@ var _class = function () {
     function _class() {
         (0, _classCallCheck3.default)(this, _class);
         this._timeout = 60000;
-        this._first = false;
+        this._delay = 0;
     }
 
     (0, _createClass3.default)(_class, null, [{
         key: 'get',
-        // used for delay
-
         value: function get(url, cookies) {
             var _this = this;
 
@@ -81,7 +79,7 @@ var _class = function () {
             }
 
             if (this._cache && this._cache.has(url)) {
-                _log2.default.verbose('[download] %s - CACHED ', url);
+                _log2.default.verbose('[download] %s (CACHED) ', url);
                 return _promise2.default.resolve(this._cache.get(url));
             } else {
                 return (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee() {
@@ -89,12 +87,12 @@ var _class = function () {
                         while (1) {
                             switch (_context.prev = _context.next) {
                                 case 0:
-                                    if (!_this._first) {
+                                    if (!_this._delay) {
                                         _context.next = 6;
                                         break;
                                     }
 
-                                    _log2.default.debug('[download] wait %s s', _this._delay);
+                                    _log2.default.verbose('[download] %s (wait %s s)', url, _this._delay.toFixed(1));
                                     _context.next = 4;
                                     return new _promise2.default(function (resolve) {
                                         return setTimeout(resolve, _this._delay * 1000);
@@ -105,17 +103,16 @@ var _class = function () {
                                     break;
 
                                 case 6:
-                                    _this._first = true;
+                                    _log2.default.verbose('[download] %s', url);
 
                                 case 7:
-                                    _log2.default.verbose('[download] %s', url);
-                                    _context.next = 10;
+                                    _context.next = 9;
                                     return _this._download(url);
 
-                                case 10:
+                                case 9:
                                     return _context.abrupt('return', _context.sent);
 
-                                case 11:
+                                case 10:
                                 case 'end':
                                     return _context.stop();
                             }
@@ -156,6 +153,7 @@ var _class = function () {
                         var size = (response.socket.bytesRead / 1024).toFixed(2) + ' KB';
                         var gzip = response.headers['content-encoding'] == 'gzip';
 
+                        _log2.default.debug('[download] %s (done)', url);
                         _log2.default.silly(response.headers);
                         _log2.default.debug('[download] size: %s (%s)', size, gzip ? 'gzip' : 'uncompressed');
                         _log2.default.debug('[download] time: ' + time);

@@ -80,6 +80,16 @@ export default class extends EventEmitter {
             // Download
             let content = null;
             try {
+                // Don't delay cached urls or first download
+                if (Download.cache.has(url)) {
+                    Download.delay = 0;
+                } else if (!this._useDelay) { // _useDelay is used to check for first download (default undefined)
+                    Download.delay = 0;
+                    this._useDelay = true;
+                } else {
+                    Download.delay = this._delay;
+                }
+
                 content = await Download.get(url);
             } catch (err) {
                 log.error(err);

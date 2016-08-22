@@ -180,7 +180,7 @@ var _class = function (_EventEmitter) {
                                 url = this._queue.get();
 
                                 if (!url) {
-                                    _context2.next = 20;
+                                    _context2.next = 21;
                                     break;
                                 }
 
@@ -193,21 +193,33 @@ var _class = function (_EventEmitter) {
                                 // Download
                                 content = null;
                                 _context2.prev = 4;
-                                _context2.next = 7;
+
+                                // Don't delay cached urls or first download
+                                if (_download2.default.cache.has(url)) {
+                                    _download2.default.delay = 0;
+                                } else if (!this._useDelay) {
+                                    // _useDelay is used to check for first download (default undefined)
+                                    _download2.default.delay = 0;
+                                    this._useDelay = true;
+                                } else {
+                                    _download2.default.delay = this._delay;
+                                }
+
+                                _context2.next = 8;
                                 return _download2.default.get(url);
 
-                            case 7:
+                            case 8:
                                 content = _context2.sent;
-                                _context2.next = 13;
+                                _context2.next = 14;
                                 break;
 
-                            case 10:
-                                _context2.prev = 10;
+                            case 11:
+                                _context2.prev = 11;
                                 _context2.t0 = _context2['catch'](4);
 
                                 _log2.default.error(_context2.t0);
 
-                            case 13:
+                            case 14:
 
                                 // Get links and data
                                 if (content) {
@@ -231,22 +243,22 @@ var _class = function (_EventEmitter) {
                                 // Check queue and continue or return
 
                                 if (!this._queue.empty) {
-                                    _context2.next = 19;
+                                    _context2.next = 20;
                                     break;
                                 }
 
                                 _log2.default.debug('[crawler] done');
                                 return _context2.abrupt('return');
 
-                            case 19:
+                            case 20:
                                 return _context2.abrupt('return', this._crawl());
 
-                            case 20:
+                            case 21:
                             case 'end':
                                 return _context2.stop();
                         }
                     }
-                }, _callee2, this, [[4, 10]]);
+                }, _callee2, this, [[4, 11]]);
             }));
 
             function _crawl() {
