@@ -165,35 +165,6 @@ var _class = function () {
             });
         }
     }, {
-        key: 'cookies',
-        set: function set(c) {
-            this._jar = _request2.default.jar();
-            var _iteratorNormalCompletion2 = true;
-            var _didIteratorError2 = false;
-            var _iteratorError2 = undefined;
-
-            try {
-                for (var _iterator2 = (0, _getIterator3.default)(c), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-                    var cookie = _step2.value;
-
-                    this._jar.setCookie(cookie, url);
-                }
-            } catch (err) {
-                _didIteratorError2 = true;
-                _iteratorError2 = err;
-            } finally {
-                try {
-                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
-                        _iterator2.return();
-                    }
-                } finally {
-                    if (_didIteratorError2) {
-                        throw _iteratorError2;
-                    }
-                }
-            }
-        }
-    }, {
         key: 'timeout',
         set: function set(t) {
             this._timeout = t * 1000;

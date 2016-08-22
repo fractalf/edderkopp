@@ -71,13 +71,6 @@ export default class {
 
     }
 
-    static set cookies(c) {
-        this._jar = request.jar()
-        for (let cookie of c) {
-            this._jar.setCookie(cookie, url);
-        }
-    }
-
     static set timeout(t) {
         this._timeout = t * 1000;
     }
