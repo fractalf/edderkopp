@@ -7,8 +7,7 @@ import Download from "./download";
 import Parser from "./parser";
 import Queue from './queue';
 
-// Crawler
-export default class extends EventEmitter {
+export default class Crawler extends EventEmitter {
 
     // Skip some common filetypes 'cause you never know whats out there (http://fileinfo.com/filetypes/common)
     _skipFiles = /jpg|jpeg|png|gif|bmp|tif|tiff|svg|pdf|wav|mpa|mp3|avi|flv|m4v|mov|mp4|mpg|swf|wmv|tar|gz|zip|rar|pkg|7z|xls|doc|log|odt|rtf|txt|exe|jar|com|bat/i;

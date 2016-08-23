@@ -22,15 +22,14 @@ var _fs2 = _interopRequireDefault(_fs);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-// WebCache
-var _class = function () {
-    function _class(file) {
-        (0, _classCallCheck3.default)(this, _class);
+var WebCache = function () {
+    function WebCache(file) {
+        (0, _classCallCheck3.default)(this, WebCache);
 
         this._file = file || process.env.NODE_CONFIG_DIR || process.cwd() + '/web-cache.json';
     }
 
-    (0, _createClass3.default)(_class, [{
+    (0, _createClass3.default)(WebCache, [{
         key: 'has',
         value: function has(url) {
             this._init();
@@ -76,8 +75,8 @@ var _class = function () {
             this._file = file;
         }
     }]);
-    return _class;
+    return WebCache;
 }();
 
-exports.default = _class;
+exports.default = WebCache;
 //# sourceMappingURL=web-cache.js.map

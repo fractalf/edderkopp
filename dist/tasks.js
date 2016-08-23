@@ -14,12 +14,12 @@ var _createClass3 = _interopRequireDefault(_createClass2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var _class = function () {
-    function _class() {
-        (0, _classCallCheck3.default)(this, _class);
+var Tasks = function () {
+    function Tasks() {
+        (0, _classCallCheck3.default)(this, Tasks);
     }
 
-    (0, _createClass3.default)(_class, null, [{
+    (0, _createClass3.default)(Tasks, null, [{
         key: 'inject',
         value: function inject(tasks) {
             for (var prop in tasks) {
@@ -43,10 +43,10 @@ var _class = function () {
         // Default tasks
 
     }]);
-    return _class;
+    return Tasks;
 }();
 
-_class._tasks = {
+Tasks._tasks = {
     // task: [ 'js', '((v)=>{ return "custom"+v;})(value)' ]
     js: function js(value, args) {
         return eval(args[0]);
@@ -123,5 +123,5 @@ _class._tasks = {
     })
 
 };
-exports.default = _class;
+exports.default = Tasks;
 //# sourceMappingURL=tasks.js.map

@@ -30,13 +30,12 @@ var _tasks2 = _interopRequireDefault(_tasks);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-// Parser
-var _class = function () {
-    function _class() {
-        (0, _classCallCheck3.default)(this, _class);
+var Parser = function () {
+    function Parser() {
+        (0, _classCallCheck3.default)(this, Parser);
     }
 
-    (0, _createClass3.default)(_class, null, [{
+    (0, _createClass3.default)(Parser, null, [{
         key: 'find',
         value: function find(selector) {
             var $ = this._$;
@@ -360,9 +359,9 @@ var _class = function () {
             this._$ = _cheerio2.default.load(html);
         }
     }]);
-    return _class;
+    return Parser;
 }();
 
-_class.includeNull = true;
-exports.default = _class;
+Parser.includeNull = true;
+exports.default = Parser;
 //# sourceMappingURL=parser.js.map

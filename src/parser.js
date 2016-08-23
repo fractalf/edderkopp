@@ -2,8 +2,7 @@ import cheerio from "cheerio";
 import log from './log';
 import Tasks from './tasks';
 
-// Parser
-export default class {
+export default class Parser {
 
     static includeNull = true; // Keep values=null in dataset
 

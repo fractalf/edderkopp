@@ -1,4 +1,4 @@
-export default class {
+export default class Tasks {
 
     static inject(tasks) {
         for (var prop in tasks) {

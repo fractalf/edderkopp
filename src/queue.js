@@ -1,6 +1,4 @@
-
-// Queue
-export default class {
+export default class Queue {
 
     constructor(options = {}) {
         this.maxItems = options.maxItems !== undefined ? options.maxItems : Number.MAX_VALUE;

@@ -38,14 +38,14 @@ var _log2 = _interopRequireDefault(_log);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var _class = function () {
-    function _class() {
-        (0, _classCallCheck3.default)(this, _class);
+var Download = function () {
+    function Download() {
+        (0, _classCallCheck3.default)(this, Download);
         this._timeout = 60000;
         this._delay = 0;
     }
 
-    (0, _createClass3.default)(_class, null, [{
+    (0, _createClass3.default)(Download, null, [{
         key: 'get',
         value: function get(url, cookies) {
             var _this = this;
@@ -183,8 +183,8 @@ var _class = function () {
             this._delay = t;
         }
     }]);
-    return _class;
+    return Download;
 }();
 
-exports.default = _class;
+exports.default = Download;
 //# sourceMappingURL=download.js.map

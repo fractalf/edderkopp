@@ -14,18 +14,17 @@ var _createClass3 = _interopRequireDefault(_createClass2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-// Queue
-var _class = function () {
-    function _class() {
+var Queue = function () {
+    function Queue() {
         var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-        (0, _classCallCheck3.default)(this, _class);
+        (0, _classCallCheck3.default)(this, Queue);
 
         this.maxItems = options.maxItems !== undefined ? options.maxItems : Number.MAX_VALUE;
         this.maxDepth = options.maxDepth !== undefined ? options.maxDepth : Number.MAX_VALUE;
         this.init();
     }
 
-    (0, _createClass3.default)(_class, [{
+    (0, _createClass3.default)(Queue, [{
         key: "init",
         value: function init() {
             this._stack = { add: [], get: [] };
@@ -83,8 +82,8 @@ var _class = function () {
             return this._depth;
         }
     }]);
-    return _class;
+    return Queue;
 }();
 
-exports.default = _class;
+exports.default = Queue;
 //# sourceMappingURL=queue.js.map

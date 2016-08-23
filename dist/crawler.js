@@ -66,18 +66,17 @@ var _queue2 = _interopRequireDefault(_queue);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-// Crawler
-var _class = function (_EventEmitter) {
-    (0, _inherits3.default)(_class, _EventEmitter);
+var Crawler = function (_EventEmitter) {
+    (0, _inherits3.default)(Crawler, _EventEmitter);
 
-    function _class(url) {
+    function Crawler(url) {
         var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-        (0, _classCallCheck3.default)(this, _class);
+        (0, _classCallCheck3.default)(this, Crawler);
 
         // must
 
         // Set root url
-        var _this = (0, _possibleConstructorReturn3.default)(this, (0, _getPrototypeOf2.default)(_class).call(this));
+        var _this = (0, _possibleConstructorReturn3.default)(this, (0, _getPrototypeOf2.default)(Crawler).call(this));
 
         _this._skipFiles = /jpg|jpeg|png|gif|bmp|tif|tiff|svg|pdf|wav|mpa|mp3|avi|flv|m4v|mov|mp4|mpg|swf|wmv|tar|gz|zip|rar|pkg|7z|xls|doc|log|odt|rtf|txt|exe|jar|com|bat/i;
         _this._url = _url2.default.parse(url, true, true);
@@ -96,7 +95,7 @@ var _class = function (_EventEmitter) {
     // Skip some common filetypes 'cause you never know whats out there (http://fileinfo.com/filetypes/common)
 
 
-    (0, _createClass3.default)(_class, [{
+    (0, _createClass3.default)(Crawler, [{
         key: 'start',
         value: function () {
             var _ref = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee() {
@@ -528,8 +527,8 @@ var _class = function (_EventEmitter) {
             return _robot;
         }()
     }]);
-    return _class;
+    return Crawler;
 }(_events2.default);
 
-exports.default = _class;
+exports.default = Crawler;
 //# sourceMappingURL=crawler.js.map

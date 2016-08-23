@@ -1,7 +1,6 @@
 import fs from 'fs';
 
-// WebCache
-export default class {
+export default class WebCache {
 
     constructor(file) {
         this._file = file || process.env.NODE_CONFIG_DIR || process.cwd() + '/web-cache.json';

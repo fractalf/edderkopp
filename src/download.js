@@ -1,7 +1,7 @@
 import request from "request";
 import log from './log';
 
-export default class {
+export default class Download {
 
     _timeout = 60000;
     _delay = 0;
