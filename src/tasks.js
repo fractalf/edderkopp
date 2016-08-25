@@ -1,3 +1,5 @@
+import log from './log';
+
 export default class Tasks {
 
     static inject(tasks) {
@@ -9,13 +11,53 @@ export default class Tasks {
         }
     }
 
-    static run(task, value, args) {
-        return this._tasks[task](value, args);
+    // Run task(s) on value(s)
+    static run(tasks, values) {
+        // Support one or more tasks
+        // a) "task": "foobar"
+        // b) "task": [ "foobar", "arg1", "arg2" ]
+        // c) "task": [
+        //     [ "foobar1", "arg1a", "arg1b" ],
+        //     [ "foobar2", "arg2a", "arg2b" ]
+        //   ]
+        // Rewrite a) and b) to c)
+        if (typeof tasks == 'string') { // a
+            tasks = [ [ tasks ] ];
+        } else if (!Array.isArray(tasks[0])) { // b
+            tasks = [ tasks ];
+        }
+
+        // Support one or more values
+        if (typeof values == 'string') {
+            values = [ values ];
+        }
+
+        // Run tasks and pipe result from one to the next unless !!<result> === false
+        for (let task of tasks) {
+            let name = task[0];
+            if (!!this._tasks[name]) {
+                let args = task.slice(1);
+                let tmp = [];
+                for (let value of values) {
+                    let res = this._tasks[name](value, args);
+                    if (res) {
+                        tmp = tmp.concat(res);
+                    }
+                }
+                values = tmp;
+                if (!values.length) {
+                    break;
+                }
+            } else {
+                log.warn('[tasks] Task doesn\'t exist: ' + name);
+            }
+        }
+        if (values.length <= 1) {
+            values = values.length == 1 ? values.pop() : null;
+        }
+        return values;
     }
 
-    static has(task) {
-        return !!this._tasks[task];
-    }
 
     // Default tasks
     static _tasks = {
@@ -82,8 +124,12 @@ export default class Tasks {
             }
             value = value ? value.replace(/[^\d]/g, '') : null;
             return value ? parseInt(value, 10) : null;
-        }
+        },
 
+        // task: 'urldecode'
+        urldecode: function(value) {
+            return decodeURIComponent(value);
+        }
     }
 
 }

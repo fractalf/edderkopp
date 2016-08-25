@@ -61,7 +61,7 @@ export default class Parser {
                 // Trim and run tasks
                 let url = href.trim();
                 if (url && l.task) {
-                    url = this._runTasks(l.task, url);
+                    url = Tasks.run(l.task, url);
                 }
                 if (url) {
                     links = [].concat(links, url); // because url can be string or array..
@@ -195,7 +195,7 @@ export default class Parser {
 
         // Run tasks on values
         if (rule.task && values.length) {
-            values = this._runTasks(rule.task, values);
+            values = Tasks.run(rule.task, values);
         }
 
         // No need to wrap single/empty values in an array
@@ -206,46 +206,4 @@ export default class Parser {
         return values;
     }
 
-    static _runTasks(tasks, values) {
-        // Code handles multiple values
-        if (typeof values == 'string') {
-            values = [ values ];
-        }
-
-        // Rewrite different task formats to:
-        // "task": [
-        //     [ "foobar1", "arg1a", "arg1b" ],
-        //     [ "foobar2", "arg2a", "arg2b" ]
-        //  ]
-        if (typeof tasks == 'string') { // "task": "foobar"
-            tasks = [ [ tasks ] ];
-        } else if (!Array.isArray(tasks[0])) { // "task": [ "foobar", "arg1", "arg2" ]
-            tasks = [ tasks ];
-        }
-
-        // Run tasks and pipe result from one to the next
-        for (let task of tasks) {
-            let name = task[0];
-            if (Tasks.has(name)) {
-                let args = task.slice(1);
-                let tmp = [];
-                for (let value of values) {
-                    let res = Tasks.run(name, value, args);
-                    if (res) {
-                        tmp = tmp.concat(res);
-                    }
-                }
-                values = tmp;
-                if (!values.length) {
-                    break;
-                }
-            } else {
-                log.warn('[parser] Task doesn\'t exist: ' + name);
-            }
-        }
-        if (values.length <= 1) {
-            values = values.length == 1 ? values.pop() : null;
-        }
-        return values;
-    }
 }
