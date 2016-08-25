@@ -3,6 +3,8 @@ import u from 'url';
 
 class Config {
 
+    _cache = {};
+
     constructor() {
         this._dir = process.env.NODE_CONFIG_DIR || process.cwd() + '/config';
     }
@@ -14,15 +16,18 @@ class Config {
 
     // Get config
     get(arg) {
-        if (Number.isInteger(arg)) { // support id in filename (ex: configfile-<id>.js)
-            return this._getById(arg);
-        } else if (arg.indexOf('http') !== -1) { // support url (will look for the url property in all config files)
-            return this._getByUrl(arg);
-        } else if (arg.indexOf('/') !== -1) { // support full path of file (ex: /home/user/config.js)
-            return this._parse(arg);
-        } else { // support recursive search for config file in dir. return first found (ex: configfile.js)
-            return this._getByFile(arg);
+        if (!this._cache[arg]) {
+            if (Number.isInteger(arg)) { // support id in filename (ex: configfile-<id>.js)
+                this._cache[arg] = this._getById(arg);
+            } else if (arg.indexOf('http') !== -1) { // support url (will look for the url property in all config files)
+                this._cache[arg] = this._getByUrl(arg);
+            } else if (arg.indexOf('/') !== -1) { // support full path of file (ex: /home/user/config.js)
+                this._cache[arg] = this._parse(arg);
+            } else { // support recursive search for config file in dir. return first found (ex: configfile.js)
+                this._cache[arg] = this._getByFile(arg);
+            }
         }
+        return this._cache[arg];
     }
 
     // Get config by id. Match id with all files found in _getFiles
@@ -54,7 +59,7 @@ class Config {
         let hostname = u.parse(url).hostname;
         for (let file of this._files) {
             let config = this._parse(file);
-            if (config.url && config.url.entry && hostname == u.parse(config.url.entry).hostname) {
+            if (config.url && hostname == u.parse(config.url).hostname) {
                 return config;
             }
         }

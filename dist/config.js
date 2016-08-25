@@ -33,6 +33,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 var Config = function () {
     function Config() {
         (0, _classCallCheck3.default)(this, Config);
+        this._cache = {};
 
         this._dir = process.env.NODE_CONFIG_DIR || process.cwd() + '/config';
     }
@@ -46,19 +47,22 @@ var Config = function () {
 
         // Get config
         value: function get(arg) {
-            if ((0, _isInteger2.default)(arg)) {
-                // support id in filename (ex: configfile-<id>.js)
-                return this._getById(arg);
-            } else if (arg.indexOf('http') !== -1) {
-                // support url (will look for the url property in all config files)
-                return this._getByUrl(arg);
-            } else if (arg.indexOf('/') !== -1) {
-                // support full path of file (ex: /home/user/config.js)
-                return this._parse(arg);
-            } else {
-                // support recursive search for config file in dir. return first found (ex: configfile.js)
-                return this._getByFile(arg);
+            if (!this._cache[arg]) {
+                if ((0, _isInteger2.default)(arg)) {
+                    // support id in filename (ex: configfile-<id>.js)
+                    this._cache[arg] = this._getById(arg);
+                } else if (arg.indexOf('http') !== -1) {
+                    // support url (will look for the url property in all config files)
+                    this._cache[arg] = this._getByUrl(arg);
+                } else if (arg.indexOf('/') !== -1) {
+                    // support full path of file (ex: /home/user/config.js)
+                    this._cache[arg] = this._parse(arg);
+                } else {
+                    // support recursive search for config file in dir. return first found (ex: configfile.js)
+                    this._cache[arg] = this._getByFile(arg);
+                }
             }
+            return this._cache[arg];
         }
 
         // Get config by id. Match id with all files found in _getFiles
@@ -150,7 +154,7 @@ var Config = function () {
                     var file = _step3.value;
 
                     var _config = this._parse(file);
-                    if (_config.url && _config.url.entry && hostname == _url2.default.parse(_config.url.entry).hostname) {
+                    if (_config.url && hostname == _url2.default.parse(_config.url).hostname) {
                         return _config;
                     }
                 }
