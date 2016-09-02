@@ -79,6 +79,9 @@ export default class Parser {
 
     // Recursively parse DOM
     static _recParse(rules, data, $container) {
+        if (!Array.isArray(rules)) {
+            rules = [ rules ];
+        }
         let $ = this._$;
         data = data || {};
         for (let i = 0; i < rules.length; i++) {

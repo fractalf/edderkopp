@@ -14,35 +14,39 @@ export default class Download {
             }
         }
 
+        // Get from cache or download it?
         if (this._cache && this._cache.has(url)) {
             log.verbose('[download] %s (CACHED) ', url);
             return Promise.resolve(this._cache.get(url));
         } else {
             return (async () => {
+                // Wait between downloads?
                 if (this._delay) {
-                    log.verbose('[download] %s (wait %s s)', url, this._delay.toFixed(1));
+                    log.verbose('[download] %s (delay %s s)', url, this._delay.toFixed(1));
                     await new Promise(resolve => setTimeout(resolve, this._delay * 1000));
                 } else {
                     log.verbose('[download] %s', url);
                 }
-                return await this._download(url);
+
+                // Prepare options for request
+                let options = {
+                    url: url,
+                    headers: {
+                        'User-Agent': USER_AGENT
+                    },
+                    gzip: true,
+                    timeout: this._timeout
+                };
+                if (this._jar) {
+                    options.jar = this._jar;
+                }
+                return await this._download(options);
             })();
         }
     }
 
-    static _download(url) {
+    static _download(options) {
         const t0 = process.hrtime();
-        let options = {
-            url: url,
-            headers: {
-                'User-Agent': USER_AGENT
-            },
-            gzip: true,
-            timeout: this._timeout
-        };
-        if (this._jar) {
-            options.jar = this._jar;
-        }
         return new Promise((resolve, reject) => {
             request(options, (error, response, content) => {
                 if (error !== null) {
@@ -50,18 +54,21 @@ export default class Download {
                 } else if (response.statusCode !== 200) {
                     reject('Error! Response code: ' + response.statusCode);
                 } else if (content) {
+                    // Use cache?
                     if (this._cache) {
-                        this._cache.set(url, content);
+                        this._cache.set(options.url, content);
                     }
+
+                    // Debug info
                     let diff = process.hrtime(t0);
                     let time = (diff[0] + diff[1] * 1e-9).toFixed(2) + ' s';
                     let size = (response.socket.bytesRead / 1024).toFixed(2) + ' KB';
                     let gzip = response.headers['content-encoding'] == 'gzip';
-
-                    log.debug('[download] %s (done)', url);
+                    log.debug('[download] %s (done)', options.url);
                     log.silly(response.headers);
-                    log.debug('[download] size: %s (%s)', size, gzip ? 'gzip' : 'uncompressed');
-                    log.debug('[download] time: ' + time);
+                    log.silly('[download] size: %s (%s)', size, gzip ? 'gzip' : 'uncompressed');
+                    log.silly('[download] time: ' + time);
+
                     resolve(content);
                 } else {
                     reject('This should not happen');
@@ -75,14 +82,18 @@ export default class Download {
         this._timeout = t * 1000;
     }
 
+    // Get cache
+    // Ex: Download.cache.has(url)
     static get cache() {
         return this._cache;
     }
 
+    // Injecting cache
     static set cache(cache) {
         this._cache = cache;
     }
 
+    // Tell Download to wait before proceeding with the actual download
     static set delay(t) {
         this._delay = t;
     }

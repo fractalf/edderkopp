@@ -92,6 +92,11 @@ export default class Tasks {
             return value + args[0];
         },
 
+        // task: [ 'insert',  'http://foo.com/{$value}/bar' ]
+        insert: function(value, args) {
+            return args[0].replace(/\{.+\}/, value);
+        },
+
         // task: [ 'split',  '&foo=bar' ]
         split: function(value, args) {
             return value.split(args[0]);

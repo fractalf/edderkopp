@@ -110,6 +110,9 @@ var Parser = function () {
         value: function _recParse(rules, data, $container) {
             var _this = this;
 
+            if (!Array.isArray(rules)) {
+                rules = [rules];
+            }
             var $ = this._$;
             data = data || {};
 

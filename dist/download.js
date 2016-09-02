@@ -78,11 +78,13 @@ var Download = function () {
                 }
             }
 
+            // Get from cache or download it?
             if (this._cache && this._cache.has(url)) {
                 _log2.default.verbose('[download] %s (CACHED) ', url);
                 return _promise2.default.resolve(this._cache.get(url));
             } else {
                 return (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee() {
+                    var options;
                     return _regenerator2.default.wrap(function _callee$(_context) {
                         while (1) {
                             switch (_context.prev = _context.next) {
@@ -92,7 +94,7 @@ var Download = function () {
                                         break;
                                     }
 
-                                    _log2.default.verbose('[download] %s (wait %s s)', url, _this._delay.toFixed(1));
+                                    _log2.default.verbose('[download] %s (delay %s s)', url, _this._delay.toFixed(1));
                                     _context.next = 4;
                                     return new _promise2.default(function (resolve) {
                                         return setTimeout(resolve, _this._delay * 1000);
@@ -106,13 +108,27 @@ var Download = function () {
                                     _log2.default.verbose('[download] %s', url);
 
                                 case 7:
-                                    _context.next = 9;
-                                    return _this._download(url);
 
-                                case 9:
+                                    // Prepare options for request
+                                    options = {
+                                        url: url,
+                                        headers: {
+                                            'User-Agent': USER_AGENT
+                                        },
+                                        gzip: true,
+                                        timeout: _this._timeout
+                                    };
+
+                                    if (_this._jar) {
+                                        options.jar = _this._jar;
+                                    }
+                                    _context.next = 11;
+                                    return _this._download(options);
+
+                                case 11:
                                     return _context.abrupt('return', _context.sent);
 
-                                case 10:
+                                case 12:
                                 case 'end':
                                     return _context.stop();
                             }
@@ -123,21 +139,10 @@ var Download = function () {
         }
     }, {
         key: '_download',
-        value: function _download(url) {
+        value: function _download(options) {
             var _this2 = this;
 
             var t0 = process.hrtime();
-            var options = {
-                url: url,
-                headers: {
-                    'User-Agent': USER_AGENT
-                },
-                gzip: true,
-                timeout: this._timeout
-            };
-            if (this._jar) {
-                options.jar = this._jar;
-            }
             return new _promise2.default(function (resolve, reject) {
                 (0, _request2.default)(options, function (error, response, content) {
                     if (error !== null) {
@@ -145,18 +150,21 @@ var Download = function () {
                     } else if (response.statusCode !== 200) {
                         reject('Error! Response code: ' + response.statusCode);
                     } else if (content) {
+                        // Use cache?
                         if (_this2._cache) {
-                            _this2._cache.set(url, content);
+                            _this2._cache.set(options.url, content);
                         }
+
+                        // Debug info
                         var diff = process.hrtime(t0);
                         var time = (diff[0] + diff[1] * 1e-9).toFixed(2) + ' s';
                         var size = (response.socket.bytesRead / 1024).toFixed(2) + ' KB';
                         var gzip = response.headers['content-encoding'] == 'gzip';
-
-                        _log2.default.debug('[download] %s (done)', url);
+                        _log2.default.debug('[download] %s (done)', options.url);
                         _log2.default.silly(response.headers);
-                        _log2.default.debug('[download] size: %s (%s)', size, gzip ? 'gzip' : 'uncompressed');
-                        _log2.default.debug('[download] time: ' + time);
+                        _log2.default.silly('[download] size: %s (%s)', size, gzip ? 'gzip' : 'uncompressed');
+                        _log2.default.silly('[download] time: ' + time);
+
                         resolve(content);
                     } else {
                         reject('This should not happen');
@@ -169,14 +177,24 @@ var Download = function () {
         set: function set(t) {
             this._timeout = t * 1000;
         }
+
+        // Get cache
+        // Ex: Download.cache.has(url)
+
     }, {
         key: 'cache',
         get: function get() {
             return this._cache;
-        },
+        }
+
+        // Injecting cache
+        ,
         set: function set(cache) {
             this._cache = cache;
         }
+
+        // Tell Download to wait before proceeding with the actual download
+
     }, {
         key: 'delay',
         set: function set(t) {
