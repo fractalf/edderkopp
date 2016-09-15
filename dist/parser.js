@@ -215,7 +215,7 @@ var Parser = function () {
                                 value = $(_this2).attr(rule.data[i]);
                                 if (value) {
                                     values.push(value);
-                                } else {
+                                } else if (value === undefined) {
                                     _log2.default.warn('[parser] Attribute not found: ' + rule.data[i]);
                                 }
                             }
@@ -227,7 +227,7 @@ var Parser = function () {
                                 value = $(_this2).data(rule.data[_i]);
                                 if (value) {
                                     values.push(value);
-                                } else {
+                                } else if (value === undefined) {
                                     _log2.default.warn('[parser] Data attribute not found: ' + rule.data[_i]);
                                 }
                             }

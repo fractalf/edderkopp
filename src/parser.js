@@ -170,7 +170,7 @@ export default class Parser {
                         value = $(this).attr(rule.data[i]);
                         if (value) {
                             values.push(value);
-                        } else {
+                        } else if (value === undefined) {
                             log.warn('[parser] Attribute not found: ' + rule.data[i]);
                         }
                     }
@@ -182,7 +182,7 @@ export default class Parser {
                         value = $(this).data(rule.data[i]);
                         if (value) {
                             values.push(value);
-                        } else {
+                        } else if (value === undefined) {
                             log.warn('[parser] Data attribute not found: ' + rule.data[i]);
                         }
                     }

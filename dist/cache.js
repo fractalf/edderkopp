@@ -4,6 +4,10 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _keys = require('babel-runtime/core-js/object/keys');
+
+var _keys2 = _interopRequireDefault(_keys);
+
 var _stringify = require('babel-runtime/core-js/json/stringify');
 
 var _stringify2 = _interopRequireDefault(_stringify);
@@ -22,14 +26,16 @@ var _fs2 = _interopRequireDefault(_fs);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var WebCache = function () {
-    function WebCache(file) {
-        (0, _classCallCheck3.default)(this, WebCache);
+var Cache = function () {
+    function Cache(file) {
+        (0, _classCallCheck3.default)(this, Cache);
 
-        this._file = file || process.env.NODE_CONFIG_DIR || process.cwd() + '/web-cache.json';
+        if (file) {
+            this._file = file;
+        }
     }
 
-    (0, _createClass3.default)(WebCache, [{
+    (0, _createClass3.default)(Cache, [{
         key: 'has',
         value: function has(url) {
             this._init();
@@ -39,14 +45,22 @@ var WebCache = function () {
         key: 'get',
         value: function get(url) {
             this._init();
-            return this._cache[url] !== undefined ? this._cache[url] : false;
+            return this._cache[url];
         }
     }, {
         key: 'set',
         value: function set(url, value) {
             this._init();
             this._cache[url] = value;
-            _fs2.default.writeFileSync(this._file, (0, _stringify2.default)(this._cache));
+            if (this._file) {
+                _fs2.default.writeFileSync(this._file, (0, _stringify2.default)(this._cache));
+            }
+        }
+    }, {
+        key: 'keys',
+        value: function keys() {
+            this._init();
+            return (0, _keys2.default)(this._cache);
         }
     }, {
         key: 'remove',
@@ -54,29 +68,30 @@ var WebCache = function () {
             this._init();
             if (this._cache[url] !== undefined) {
                 delete this._cache[url];
-                _fs2.default.writeFileSync(this._file, (0, _stringify2.default)(this._cache));
+                if (this._file) {
+                    _fs2.default.writeFileSync(this._file, (0, _stringify2.default)(this._cache));
+                }
             }
         }
     }, {
         key: '_init',
         value: function _init() {
             if (this._cache === undefined) {
-                try {
-                    var f = _fs2.default.readFileSync(this._file);
-                    this._cache = JSON.parse(f.toString());
-                } catch (err) {
+                if (this._file) {
+                    try {
+                        var f = _fs2.default.readFileSync(this._file);
+                        this._cache = JSON.parse(f.toString());
+                    } catch (err) {
+                        this._cache = {};
+                    }
+                } else {
                     this._cache = {};
                 }
             }
         }
-    }, {
-        key: 'file',
-        set: function set(file) {
-            this._file = file;
-        }
     }]);
-    return WebCache;
+    return Cache;
 }();
 
-exports.default = WebCache;
-//# sourceMappingURL=web-cache.js.map
+exports.default = Cache;
+//# sourceMappingURL=cache.js.map

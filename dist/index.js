@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.WebCache = exports.Crawler = exports.Parser = exports.Download = exports.Tasks = exports.config = exports.log = undefined;
+exports.Cache = exports.Crawler = exports.Parser = exports.Download = exports.Tasks = exports.config = exports.log = undefined;
 
 var _log = require('./log');
 
@@ -29,13 +29,13 @@ var _crawler = require('./crawler');
 
 var _crawler2 = _interopRequireDefault(_crawler);
 
-var _webCache = require('./web-cache');
+var _cache = require('./cache');
 
-var _webCache2 = _interopRequireDefault(_webCache);
+var _cache2 = _interopRequireDefault(_cache);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-global.VERSION = '1.0.0-alpha';
+global.VERSION = '1.0.0-beta';
 global.USER_AGENT = 'Edderkopp/' + VERSION;
 
 exports.log = _log2.default;
@@ -44,5 +44,5 @@ exports.Tasks = _tasks2.default;
 exports.Download = _download2.default;
 exports.Parser = _parser2.default;
 exports.Crawler = _crawler2.default;
-exports.WebCache = _webCache2.default;
+exports.Cache = _cache2.default;
 //# sourceMappingURL=index.js.map

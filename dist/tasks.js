@@ -172,7 +172,7 @@ Tasks._tasks = {
         return value + args[0];
     },
 
-    // task: [ 'insert',  'http://foo.com/{$value}/bar' ]
+    // task: [ 'insert',  'http://foo.com/{value}/bar' ]
     insert: function insert(value, args) {
         return args[0].replace(/\{.+\}/, value);
     },
