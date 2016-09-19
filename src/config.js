@@ -59,7 +59,7 @@ class Config {
         let hostname = u.parse(url).hostname;
         for (let file of this._files) {
             let config = this._parse(file);
-            if (config.url && hostname == u.parse(config.url).hostname) {
+            if (config && config.url && hostname == u.parse(config.url).hostname) {
                 return config;
             }
         }
@@ -80,6 +80,8 @@ class Config {
             return JSON.parse(fs.readFileSync(file).toString());
         } else if (match[1] == 'js') {
             return require(file);
+        } else {
+            return false;
         }
     }
 

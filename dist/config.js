@@ -154,7 +154,7 @@ var Config = function () {
                     var file = _step3.value;
 
                     var _config = this._parse(file);
-                    if (_config.url && hostname == _url2.default.parse(_config.url).hostname) {
+                    if (_config && _config.url && hostname == _url2.default.parse(_config.url).hostname) {
                         return _config;
                     }
                 }
@@ -196,6 +196,8 @@ var Config = function () {
                 return JSON.parse(_fs2.default.readFileSync(file).toString());
             } else if (match[1] == 'js') {
                 return require(file);
+            } else {
+                return false;
             }
         }
 

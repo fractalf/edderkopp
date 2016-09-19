@@ -67,14 +67,6 @@ var Cache = function () {
             return (0, _keys2.default)(this._cache);
         }
     }, {
-        key: 'remove',
-        value: function remove(url) {
-            this._init();
-            if (this._cache[url] !== undefined) {
-                delete this._cache[url];
-            }
-        }
-    }, {
         key: '_init',
         value: function _init() {
             if (this._cache === undefined) {

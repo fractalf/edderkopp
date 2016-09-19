@@ -36,13 +36,6 @@ export default class Cache {
         return Object.keys(this._cache);
     }
 
-    remove(url) {
-        this._init();
-        if (this._cache[url] !== undefined) {
-            delete this._cache[url];
-        }
-    }
-
     _init() {
         if (this._cache === undefined) {
             if (this._file) {
