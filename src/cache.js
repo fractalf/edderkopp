@@ -23,6 +23,9 @@ export default class Cache {
     set(url, value) {
         this._init();
         this._cache[url] = value;
+    }
+
+    write() {
         if (this._file) {
             fs.writeFileSync(this._file, JSON.stringify(this._cache));
         }
@@ -37,9 +40,6 @@ export default class Cache {
         this._init();
         if (this._cache[url] !== undefined) {
             delete this._cache[url];
-            if (this._file) {
-                fs.writeFileSync(this._file, JSON.stringify(this._cache));
-            }
         }
     }
 

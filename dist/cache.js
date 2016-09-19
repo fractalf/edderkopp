@@ -52,6 +52,10 @@ var Cache = function () {
         value: function set(url, value) {
             this._init();
             this._cache[url] = value;
+        }
+    }, {
+        key: 'write',
+        value: function write() {
             if (this._file) {
                 _fs2.default.writeFileSync(this._file, (0, _stringify2.default)(this._cache));
             }
@@ -68,9 +72,6 @@ var Cache = function () {
             this._init();
             if (this._cache[url] !== undefined) {
                 delete this._cache[url];
-                if (this._file) {
-                    _fs2.default.writeFileSync(this._file, (0, _stringify2.default)(this._cache));
-                }
             }
         }
     }, {
