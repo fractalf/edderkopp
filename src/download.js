@@ -1,12 +1,20 @@
 import request from "request";
-import log from './log';
 
 export default class Download {
 
     _timeout = 60000;
-    _delay = 0;
+    _cache = false;
+    _delay = [ 2, 5 ]; // delay 2-5 sec (simulate a user)
+    _force = false;
 
-    static get(url, cookies) {
+    constructor(options) {
+        if (options.timeout !== undefined) { this._timeout = options.timeout; }
+        if (options.delay !== undefined)   { this._delay = options.delay; }
+        if (options.cache !== undefined)   { this._cache = options.cache; }
+        if (options.force !== undefined)   { this._force = options.force; }
+    }
+
+    get(url, cookies) {
         if (cookies) {
             this._jar = request.jar()
             for (let cookie of cookies) {
@@ -15,17 +23,21 @@ export default class Download {
         }
 
         // Get from cache or download it?
-        if (this._cache && this._cache.has(url)) {
-            log.verbose('[download] %s (CACHED) ', url);
-            return Promise.resolve(this._cache.get(url));
+        if (this._cache && !this._force && this._cache.has(url)) {
+            let res = {
+                content: this._cache.get(url),
+                cached: true
+            }
+            return Promise.resolve(res);
         } else {
             return (async () => {
-                // Wait between downloads?
-                if (this._delay) {
-                    log.verbose('[download] %s (delay %s s)', url, this._delay.toFixed(1));
-                    await new Promise(resolve => setTimeout(resolve, this._delay * 1000));
+                let delay = 0;
+                if (this._useDelay) {
+                    delay = !Array.isArray(this._delay) ? this._delay : this._delay[0] + (this._delay[1] - this._delay[0]) * Math.random();
+                    await new Promise(resolve => setTimeout(resolve, delay * 1000));
                 } else {
-                    log.verbose('[download] %s', url);
+                    // Don't delay first download
+                    this._useDelay = true;
                 }
 
                 // Prepare options for request
@@ -40,19 +52,21 @@ export default class Download {
                 if (this._jar) {
                     options.jar = this._jar;
                 }
-                return await this._download(options);
+                let res = await this._download(options);
+                res.delay = delay;
+                return res;
             })();
         }
     }
 
-    static _download(options) {
-        const t0 = process.hrtime();
+    _download(options) {
         return new Promise((resolve, reject) => {
+            const t0 = process.hrtime();
             request(options, (error, response, content) => {
                 if (error !== null) {
                     reject(error);
                 } else if (response.statusCode !== 200) {
-                    reject('Error! Response code: ' + response.statusCode);
+                    reject('Response code: ' + response.statusCode);
                 } else if (content) {
                     // Use cache?
                     if (this._cache) {
@@ -61,40 +75,13 @@ export default class Download {
 
                     // Debug info
                     let diff = process.hrtime(t0);
-                    let time = (diff[0] + diff[1] * 1e-9).toFixed(2) + ' s';
-                    let size = (response.socket.bytesRead / 1024).toFixed(2) + ' KB';
-                    let gzip = response.headers['content-encoding'] == 'gzip';
-                    log.debug('[download] %s (done)', options.url);
-                    log.silly(response.headers);
-                    log.silly('[download] size: %s (%s)', size, gzip ? 'gzip' : 'uncompressed');
-                    log.silly('[download] time: ' + time);
-
-                    resolve(content);
+                    let time = diff[0] + diff[1] * 1e-9;
+                    resolve({ headers: response.headers, content, time });
                 } else {
                     reject('This should not happen');
                 }
             });
         });
 
-    }
-
-    static set timeout(t) {
-        this._timeout = t * 1000;
-    }
-
-    // Get cache
-    // Ex: Download.cache.has(url)
-    static get cache() {
-        return this._cache;
-    }
-
-    // Injecting cache
-    static set cache(cache) {
-        this._cache = cache;
-    }
-
-    // Tell Download to wait before proceeding with the actual download
-    static set delay(t) {
-        this._delay = t;
     }
 }
