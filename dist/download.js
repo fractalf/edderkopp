@@ -35,12 +35,14 @@ var _request2 = _interopRequireDefault(_request);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var Download = function () {
+    // delay 2-5 sec (simulate a user)
     function Download(options) {
         (0, _classCallCheck3.default)(this, Download);
         this._timeout = 60000;
         this._cache = false;
         this._delay = [2, 5];
         this._force = false;
+        this._followRedirect = true;
 
         if (options.timeout !== undefined) {
             this._timeout = options.timeout;
@@ -54,8 +56,10 @@ var Download = function () {
         if (options.force !== undefined) {
             this._force = options.force;
         }
-    } // delay 2-5 sec (simulate a user)
-
+        if (options.followRedirect !== undefined) {
+            this._followRedirect = options.followRedirect;
+        }
+    }
 
     (0, _createClass3.default)(Download, [{
         key: 'get',
@@ -133,6 +137,7 @@ var Download = function () {
                                         headers: {
                                             'User-Agent': USER_AGENT
                                         },
+                                        followRedirect: _this._followRedirect,
                                         gzip: true,
                                         timeout: _this._timeout
                                     };
@@ -168,21 +173,21 @@ var Download = function () {
                 (0, _request2.default)(options, function (error, response, content) {
                     if (error !== null) {
                         reject(error);
-                    } else if (response.statusCode !== 200) {
-                        reject('Response code: ' + response.statusCode);
-                    } else if (content) {
-                        // Use cache?
-                        if (_this2._cache) {
-                            _this2._cache.set(options.url, content);
-                        }
-
-                        // Debug info
-                        var diff = process.hrtime(t0);
-                        var time = diff[0] + diff[1] * 1e-9;
-                        resolve({ headers: response.headers, content: content, time: time });
-                    } else {
-                        reject('This should not happen');
                     }
+                    // Note: the strange 301|302 condition is for the very weird case where a site returns a 301|302
+                    // with the correct content! Then we don't want to follow redirect, just return the body.
+                    else if (response.statusCode === 200 || /30[12]/.test(response.statusCode) && !_this2._followRedirect) {
+                            // Debug info
+                            var diff = process.hrtime(t0);
+                            var time = diff[0] + diff[1] * 1e-9;
+
+                            if (_this2._cache) {
+                                _this2._cache.set(options.url, content);
+                            }
+                            resolve({ statusCode: response.statusCode, headers: response.headers, content: content, time: time });
+                        } else {
+                            reject('Response code: ' + response.statusCode);
+                        }
                 });
             });
         }

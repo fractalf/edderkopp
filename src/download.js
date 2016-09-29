@@ -6,12 +6,14 @@ export default class Download {
     _cache = false;
     _delay = [ 2, 5 ]; // delay 2-5 sec (simulate a user)
     _force = false;
+    _followRedirect = true;
 
     constructor(options) {
         if (options.timeout !== undefined) { this._timeout = options.timeout; }
-        if (options.delay !== undefined)   { this._delay = options.delay; }
-        if (options.cache !== undefined)   { this._cache = options.cache; }
-        if (options.force !== undefined)   { this._force = options.force; }
+        if (options.delay !== undefined) { this._delay = options.delay; }
+        if (options.cache !== undefined) { this._cache = options.cache; }
+        if (options.force !== undefined) { this._force = options.force; }
+        if (options.followRedirect !== undefined) { this._followRedirect = options.followRedirect; }
     }
 
     get(url, cookies) {
@@ -46,6 +48,7 @@ export default class Download {
                     headers: {
                         'User-Agent': USER_AGENT
                     },
+                    followRedirect: this._followRedirect,
                     gzip: true,
                     timeout: this._timeout
                 };
@@ -65,20 +68,18 @@ export default class Download {
             request(options, (error, response, content) => {
                 if (error !== null) {
                     reject(error);
-                } else if (response.statusCode !== 200) {
-                    reject('Response code: ' + response.statusCode);
-                } else if (content) {
-                    // Use cache?
-                    if (this._cache) {
-                        this._cache.set(options.url, content);
-                    }
-
+                }
+                // Note: the strange 301|302 condition is for the very weird case where a site returns a 301|302
+                // with the correct content! Then we don't want to follow redirect, just return the body.
+                else if (response.statusCode === 200 || /30[12]/.test(response.statusCode) && !this._followRedirect) {
                     // Debug info
                     let diff = process.hrtime(t0);
                     let time = diff[0] + diff[1] * 1e-9;
-                    resolve({ headers: response.headers, content, time });
+
+                    if (this._cache) { this._cache.set(options.url, content); }
+                    resolve({ statusCode: response.statusCode, headers: response.headers, content, time });
                 } else {
-                    reject('This should not happen');
+                    reject('Response code: ' + response.statusCode);
                 }
             });
         });
