@@ -30,6 +30,22 @@ class Config {
         return this._cache[arg];
     }
 
+    // Get config
+    getAll() {
+        if (!this._cache.all) {
+            this._init();
+            let all = [];
+            for (let file of this._files) {
+                let config = this._parse(file);
+                if (config) {
+                    all.push(config);
+                }
+            }
+            this._cache.all = all;
+        }
+        return this._cache.all;
+    }
+
     // Get config by id. Match id with all files found in _getFiles
     _getById(id) {
         this._init();
