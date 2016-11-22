@@ -53,11 +53,6 @@ export default class Tasks {
             }
         }
 
-        // No need to wrap single/empty values in an array
-        if (values.length <= 1) {
-            values = values.length == 1 ? values.pop() : null;
-        }
-
         return values;
     }
 
