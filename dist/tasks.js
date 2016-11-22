@@ -113,6 +113,8 @@ var Tasks = function () {
                         _log2.default.warn('[tasks] Task doesn\'t exist: ' + name);
                     }
                 }
+
+                // No need to wrap single/empty values in an array
             } catch (err) {
                 _didIteratorError = true;
                 _iteratorError = err;
@@ -131,6 +133,7 @@ var Tasks = function () {
             if (values.length <= 1) {
                 values = values.length == 1 ? values.pop() : null;
             }
+
             return values;
         }
 

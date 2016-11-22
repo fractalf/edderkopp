@@ -201,11 +201,6 @@ export default class Parser {
             values = Tasks.run(rule.task, values);
         }
 
-        // No need to wrap single/empty values in an array
-        if (values && values.length <= 1) {
-            values = values.length == 1 ? values.pop() : null;
-        }
-
         return values;
     }
 

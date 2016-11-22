@@ -65,48 +65,52 @@ var Config = function () {
             return this._cache[arg];
         }
 
+        // Get config
+
+    }, {
+        key: 'getAll',
+        value: function getAll() {
+            if (!this._cache.all) {
+                this._init();
+                var all = [];
+                var _iteratorNormalCompletion = true;
+                var _didIteratorError = false;
+                var _iteratorError = undefined;
+
+                try {
+                    for (var _iterator = (0, _getIterator3.default)(this._files), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                        var file = _step.value;
+
+                        var _config = this._parse(file);
+                        if (_config) {
+                            all.push(_config);
+                        }
+                    }
+                } catch (err) {
+                    _didIteratorError = true;
+                    _iteratorError = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion && _iterator.return) {
+                            _iterator.return();
+                        }
+                    } finally {
+                        if (_didIteratorError) {
+                            throw _iteratorError;
+                        }
+                    }
+                }
+
+                this._cache.all = all;
+            }
+            return this._cache.all;
+        }
+
         // Get config by id. Match id with all files found in _getFiles
 
     }, {
         key: '_getById',
         value: function _getById(id) {
-            this._init();
-            var _iteratorNormalCompletion = true;
-            var _didIteratorError = false;
-            var _iteratorError = undefined;
-
-            try {
-                for (var _iterator = (0, _getIterator3.default)(this._files), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                    var file = _step.value;
-
-                    var match = file.match(/-(\d+)\./);
-                    if (match && match[1] == id) {
-                        return this._parse(file);
-                    }
-                }
-            } catch (err) {
-                _didIteratorError = true;
-                _iteratorError = err;
-            } finally {
-                try {
-                    if (!_iteratorNormalCompletion && _iterator.return) {
-                        _iterator.return();
-                    }
-                } finally {
-                    if (_didIteratorError) {
-                        throw _iteratorError;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        // Get config by filename. Match file with all files found in _getFiles
-
-    }, {
-        key: '_getByFile',
-        value: function _getByFile(file) {
             this._init();
             var _iteratorNormalCompletion2 = true;
             var _didIteratorError2 = false;
@@ -114,10 +118,11 @@ var Config = function () {
 
             try {
                 for (var _iterator2 = (0, _getIterator3.default)(this._files), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-                    var f = _step2.value;
+                    var file = _step2.value;
 
-                    if (f.indexOf(file) > -1) {
-                        return this._parse(f);
+                    var match = file.match(/-(\d+)\./);
+                    if (match && match[1] == id) {
+                        return this._parse(file);
                     }
                 }
             } catch (err) {
@@ -138,24 +143,22 @@ var Config = function () {
             return false;
         }
 
-        // Get config by url. Open all files found in _getFiles and look at the url property
+        // Get config by filename. Match file with all files found in _getFiles
 
     }, {
-        key: '_getByUrl',
-        value: function _getByUrl(url) {
+        key: '_getByFile',
+        value: function _getByFile(file) {
             this._init();
-            var hostname = _url2.default.parse(url).hostname;
             var _iteratorNormalCompletion3 = true;
             var _didIteratorError3 = false;
             var _iteratorError3 = undefined;
 
             try {
                 for (var _iterator3 = (0, _getIterator3.default)(this._files), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-                    var file = _step3.value;
+                    var f = _step3.value;
 
-                    var _config = this._parse(file);
-                    if (_config && _config.url && hostname == _url2.default.parse(_config.url).hostname) {
-                        return _config;
+                    if (f.indexOf(file) > -1) {
+                        return this._parse(f);
                     }
                 }
             } catch (err) {
@@ -169,6 +172,44 @@ var Config = function () {
                 } finally {
                     if (_didIteratorError3) {
                         throw _iteratorError3;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        // Get config by url. Open all files found in _getFiles and look at the url property
+
+    }, {
+        key: '_getByUrl',
+        value: function _getByUrl(url) {
+            this._init();
+            var hostname = _url2.default.parse(url).hostname;
+            var _iteratorNormalCompletion4 = true;
+            var _didIteratorError4 = false;
+            var _iteratorError4 = undefined;
+
+            try {
+                for (var _iterator4 = (0, _getIterator3.default)(this._files), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                    var file = _step4.value;
+
+                    var _config2 = this._parse(file);
+                    if (_config2 && _config2.url && hostname == _url2.default.parse(_config2.url).hostname) {
+                        return _config2;
+                    }
+                }
+            } catch (err) {
+                _didIteratorError4 = true;
+                _iteratorError4 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                        _iterator4.return();
+                    }
+                } finally {
+                    if (_didIteratorError4) {
+                        throw _iteratorError4;
                     }
                 }
             }
@@ -207,13 +248,13 @@ var Config = function () {
         key: '_getFiles',
         value: function _getFiles(dir) {
             var files = [];
-            var _iteratorNormalCompletion4 = true;
-            var _didIteratorError4 = false;
-            var _iteratorError4 = undefined;
+            var _iteratorNormalCompletion5 = true;
+            var _didIteratorError5 = false;
+            var _iteratorError5 = undefined;
 
             try {
-                for (var _iterator4 = (0, _getIterator3.default)(_fs2.default.readdirSync(dir)), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-                    var file = _step4.value;
+                for (var _iterator5 = (0, _getIterator3.default)(_fs2.default.readdirSync(dir)), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+                    var file = _step5.value;
 
                     if (_fs2.default.statSync(dir + '/' + file).isDirectory()) {
                         files = files.concat(this._getFiles(dir + '/' + file));
@@ -222,16 +263,16 @@ var Config = function () {
                     }
                 }
             } catch (err) {
-                _didIteratorError4 = true;
-                _iteratorError4 = err;
+                _didIteratorError5 = true;
+                _iteratorError5 = err;
             } finally {
                 try {
-                    if (!_iteratorNormalCompletion4 && _iterator4.return) {
-                        _iterator4.return();
+                    if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                        _iterator5.return();
                     }
                 } finally {
-                    if (_didIteratorError4) {
-                        throw _iteratorError4;
+                    if (_didIteratorError5) {
+                        throw _iteratorError5;
                     }
                 }
             }
