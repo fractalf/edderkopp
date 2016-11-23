@@ -248,7 +248,7 @@ var Parser = function () {
             }
 
             // No need to wrap single/empty values in an array
-            if (values.length <= 1) {
+            if (Array.isArray(values) && values.length <= 1) {
                 values = values.length == 1 ? values.pop() : null;
             }
 
