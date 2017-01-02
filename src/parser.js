@@ -87,7 +87,6 @@ export default class Parser {
         for (let i = 0; i < rules.length; i++) {
             const rule = rules[i];
             if (rule.name) {
-                // const $elem = rule.elem ? $(rule.elem, $container) : $container;
                 let $elem, optional = false;
                 if (rule.elem) {
                     if (Array.isArray(rule.elem)) {
@@ -170,7 +169,7 @@ export default class Parser {
                         value = $(this).attr(rule.data[i]);
                         if (value) {
                             values.push(value);
-                        } else if (value === undefined) {
+                        } else if (value === undefined && rule.elem[1] !== 'optional') {
                             log.warn('[parser] Attribute not found: ' + rule.data[i]);
                         }
                     }
@@ -182,7 +181,7 @@ export default class Parser {
                         value = $(this).data(rule.data[i]);
                         if (value) {
                             values.push(value);
-                        } else if (value === undefined) {
+                        } else if (value === undefined && rule.elem[1] !== 'optional') {
                             log.warn('[parser] Data attribute not found: ' + rule.data[i]);
                         }
                     }

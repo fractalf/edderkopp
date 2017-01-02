@@ -119,7 +119,6 @@ var Parser = function () {
             var _loop2 = function _loop2(i) {
                 var rule = rules[i];
                 if (rule.name) {
-                    // const $elem = rule.elem ? $(rule.elem, $container) : $container;
                     var $elem = void 0,
                         optional = false;
                     if (rule.elem) {
@@ -215,7 +214,7 @@ var Parser = function () {
                                 value = $(_this2).attr(rule.data[i]);
                                 if (value) {
                                     values.push(value);
-                                } else if (value === undefined) {
+                                } else if (value === undefined && rule.elem[1] !== 'optional') {
                                     _log2.default.warn('[parser] Attribute not found: ' + rule.data[i]);
                                 }
                             }
@@ -227,7 +226,7 @@ var Parser = function () {
                                 value = $(_this2).data(rule.data[_i]);
                                 if (value) {
                                     values.push(value);
-                                } else if (value === undefined) {
+                                } else if (value === undefined && rule.elem[1] !== 'optional') {
                                     _log2.default.warn('[parser] Data attribute not found: ' + rule.data[_i]);
                                 }
                             }

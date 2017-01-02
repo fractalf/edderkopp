@@ -70,8 +70,9 @@ export default class Tasks {
         },
 
         // task: 'json'
-        json: function(value) {
-            return JSON.parse(value);
+        json: function(value, key) {
+            let data = JSON.parse(value);
+            return key ? data[key] : data;
         },
 
         // task: [ 'match', '\\/(\\w+)-(\\d+)' ] => returns value or null

@@ -150,8 +150,9 @@ Tasks._tasks = {
     },
 
     // task: 'json'
-    json: function json(value) {
-        return JSON.parse(value);
+    json: function json(value, key) {
+        var data = JSON.parse(value);
+        return key ? data[key] : data;
     },
 
     // task: [ 'match', '\\/(\\w+)-(\\d+)' ] => returns value or null
