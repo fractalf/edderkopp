@@ -5,10 +5,12 @@ winston.emitErrs = true;
 
 class Log {
 
+    _log;
+    _settings;
     _level = 'info';
 
     constructor() {
-        this.log = new winston.Logger({
+        this._log = new winston.Logger({
             transports: [
                 new winston.transports.Console({
                     level: this._level,
@@ -20,18 +22,18 @@ class Log {
             ],
             exitOnError: false
         });
-        this._settings = this.log.transports.console;
+        this._settings = this._log.transports.console;
 
         // Mapping methods to winston and support util.format('a %s c', 'b')
         [ 'silly', 'debug', 'verbose', 'info', 'warn', 'error' ].forEach((func) => {
             this[func] = (...arg) => {
-                this.log[func](arg[1] !== undefined ? util.format.apply(null, arg) : arg[0]);
+                this._log[func](arg[1] !== undefined ? util.format.apply(null, arg) : arg[0]);
             }
         })
     }
 
     set file(filename) {
-        this.log = new winston.Logger({
+        this._log = new winston.Logger({
             transports: [
                 new winston.transports.File({
                     level: this._level,
@@ -46,7 +48,7 @@ class Log {
             ],
             exitOnError: false
         });
-        this._settings = this.log.transports.file;
+        this._settings = this._log.transports.file;
     }
 
     /**

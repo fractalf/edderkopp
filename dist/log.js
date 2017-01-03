@@ -31,7 +31,7 @@ var Log = function () {
         (0, _classCallCheck3.default)(this, Log);
         this._level = 'info';
 
-        this.log = new _winston2.default.Logger({
+        this._log = new _winston2.default.Logger({
             transports: [new _winston2.default.transports.Console({
                 level: this._level,
                 handleExceptions: false,
@@ -41,7 +41,7 @@ var Log = function () {
             })],
             exitOnError: false
         });
-        this._settings = this.log.transports.console;
+        this._settings = this._log.transports.console;
 
         // Mapping methods to winston and support util.format('a %s c', 'b')
         ['silly', 'debug', 'verbose', 'info', 'warn', 'error'].forEach(function (func) {
@@ -50,7 +50,7 @@ var Log = function () {
                     arg[_key] = arguments[_key];
                 }
 
-                _this.log[func](arg[1] !== undefined ? _util2.default.format.apply(null, arg) : arg[0]);
+                _this._log[func](arg[1] !== undefined ? _util2.default.format.apply(null, arg) : arg[0]);
             };
         });
     }
@@ -58,7 +58,7 @@ var Log = function () {
     (0, _createClass3.default)(Log, [{
         key: 'file',
         set: function set(filename) {
-            this.log = new _winston2.default.Logger({
+            this._log = new _winston2.default.Logger({
                 transports: [new _winston2.default.transports.File({
                     level: this._level,
                     filename: filename,
@@ -71,7 +71,7 @@ var Log = function () {
                 })],
                 exitOnError: false
             });
-            this._settings = this.log.transports.file;
+            this._settings = this._log.transports.file;
         }
 
         /**
