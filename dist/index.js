@@ -3,11 +3,11 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.Cache = exports.Crawler = exports.Parser = exports.Download = exports.Tasks = exports.config = exports.log = undefined;
+exports.Cache = exports.Crawler = exports.Parser = exports.Download = exports.Tasks = exports.config = exports.bus = undefined;
 
-var _log = require('./log');
+var _bus = require('./bus');
 
-var _log2 = _interopRequireDefault(_log);
+var _bus2 = _interopRequireDefault(_bus);
 
 var _config = require('./config');
 
@@ -38,7 +38,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 global.VERSION = '1.0.0-beta';
 global.USER_AGENT = 'Edderkopp/' + VERSION;
 
-exports.log = _log2.default;
+exports.bus = _bus2.default;
 exports.config = _config2.default;
 exports.Tasks = _tasks2.default;
 exports.Download = _download2.default;
