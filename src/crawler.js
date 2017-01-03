@@ -88,16 +88,17 @@ export default class Crawler extends EventEmitter {
 
             // Get links and data
             if (content) {
-                Parser.html = content;
+                // TODO: Move this block + _getLinks & _getData into new function "handleContent()"
+                const parser = new Parser(content);
 
                 // Get links and add to queue
-                let links = this._getLinks();
+                let links = this._getLinks(parser);
                 if (links) {
                     this._queue.add(links);
                 }
 
                 // Get data and tell 'handle-data' listeners about it
-                let data = this._getData(url);
+                let data = this._getData(parser, url);
                 if (data) {
                     this.emit('handle-data', data);
                 }
@@ -114,7 +115,7 @@ export default class Crawler extends EventEmitter {
     }
 
     // Get links for different modes
-    _getLinks() {
+    _getLinks(parser) {
         // Continue crawling?
         let getLinks = true;
         if (this._mode == 'fetch') {
@@ -139,7 +140,7 @@ export default class Crawler extends EventEmitter {
             }
 
             // Get links
-            links = Parser.getLinks(link, this._skip);
+            links = parser.links(link, this._skip);
             log.debug('[crawler] %d links found', links.length);
 
             // Validate links
@@ -151,7 +152,7 @@ export default class Crawler extends EventEmitter {
     }
 
     // Get data by parsing html
-    _getData(url) {
+    _getData(parser, url) {
         // Get data? Go through cases..
         let getData = false;
         if (this._mode == 'waterfall') {
@@ -164,7 +165,7 @@ export default class Crawler extends EventEmitter {
                     getData = true;
                 }
             } else {
-                if (Parser.find(this._page.elem)) {
+                if (parser.has(this._page.elem)) {
                     getData = true;
                 }
             }
@@ -175,7 +176,7 @@ export default class Crawler extends EventEmitter {
         let data;
         if (getData) {
             // Return parsed html if 'data' is defined in config or plain html of not
-            data = this._rule ? Parser.getData(this._rule) : Parser.html;
+            data = this._rule ? parser.data(this._rule) : parser.html;
         } else {
             data = false;
         }

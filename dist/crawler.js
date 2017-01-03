@@ -160,7 +160,7 @@ var Crawler = function (_EventEmitter) {
         key: '_crawl',
         value: function () {
             var _ref2 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee2() {
-                var url, content, links, data;
+                var url, content, parser, links, data;
                 return _regenerator2.default.wrap(function _callee2$(_context2) {
                     while (1) {
                         switch (_context2.prev = _context2.next) {
@@ -211,17 +211,19 @@ var Crawler = function (_EventEmitter) {
 
                                 // Get links and data
                                 if (content) {
-                                    _parser2.default.html = content;
+                                    // TODO: Move this block + _getLinks & _getData into new function "handleContent()"
+                                    parser = new _parser2.default(content);
 
                                     // Get links and add to queue
-                                    links = this._getLinks();
+
+                                    links = this._getLinks(parser);
 
                                     if (links) {
                                         this._queue.add(links);
                                     }
 
                                     // Get data and tell 'handle-data' listeners about it
-                                    data = this._getData(url);
+                                    data = this._getData(parser, url);
 
                                     if (data) {
                                         this.emit('handle-data', data);
@@ -260,7 +262,7 @@ var Crawler = function (_EventEmitter) {
 
     }, {
         key: '_getLinks',
-        value: function _getLinks() {
+        value: function _getLinks(parser) {
             // Continue crawling?
             var getLinks = true;
             if (this._mode == 'fetch') {
@@ -285,7 +287,7 @@ var Crawler = function (_EventEmitter) {
                 }
 
                 // Get links
-                links = _parser2.default.getLinks(link, this._skip);
+                links = parser.links(link, this._skip);
                 _log2.default.debug('[crawler] %d links found', links.length);
 
                 // Validate links
@@ -300,7 +302,7 @@ var Crawler = function (_EventEmitter) {
 
     }, {
         key: '_getData',
-        value: function _getData(url) {
+        value: function _getData(parser, url) {
             // Get data? Go through cases..
             var getData = false;
             if (this._mode == 'waterfall') {
@@ -313,7 +315,7 @@ var Crawler = function (_EventEmitter) {
                         getData = true;
                     }
                 } else {
-                    if (_parser2.default.find(this._page.elem)) {
+                    if (parser.has(this._page.elem)) {
                         getData = true;
                     }
                 }
@@ -324,7 +326,7 @@ var Crawler = function (_EventEmitter) {
             var data = void 0;
             if (getData) {
                 // Return parsed html if 'data' is defined in config or plain html of not
-                data = this._rule ? _parser2.default.getData(this._rule) : _parser2.default.html;
+                data = this._rule ? parser.data(this._rule) : parser.html;
             } else {
                 data = false;
             }

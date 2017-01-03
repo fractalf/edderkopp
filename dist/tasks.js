@@ -16,11 +16,11 @@ var _createClass2 = require('babel-runtime/helpers/createClass');
 
 var _createClass3 = _interopRequireDefault(_createClass2);
 
-var _log = require('./log');
-
-var _log2 = _interopRequireDefault(_log);
+var _bus = require('./bus');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var prefix = '[tasks] ';
 
 var Tasks = function () {
     function Tasks() {
@@ -32,7 +32,7 @@ var Tasks = function () {
         value: function inject(tasks) {
             for (var prop in tasks) {
                 if (this._tasks[prop]) {
-                    _log2.default.warn('[parser] Overriding task: ' + prop);
+                    (0, _bus.warn)(prefix + 'Overriding task: ' + prop);
                 }
                 this._tasks[prop] = tasks[prop];
             }
@@ -110,7 +110,7 @@ var Tasks = function () {
                             break;
                         }
                     } else {
-                        _log2.default.warn('[tasks] Task doesn\'t exist: ' + name);
+                        (0, _bus.warn)(prefix + 'Task doesn\'t exist: ' + name);
                     }
                 }
 
@@ -136,23 +136,20 @@ var Tasks = function () {
 
             return values;
         }
-
-        // Default tasks
-
     }]);
     return Tasks;
 }();
 
-Tasks._tasks = {
-    // task: [ 'js', '((v)=>{ return "custom"+v;})(value)' ]
-    js: function js(value, args) {
-        return eval(args[0]);
-    },
+// Default tasks
 
-    // task: 'json'
-    json: function json(value, key) {
-        var data = JSON.parse(value);
-        return key ? data[key] : data;
+
+Tasks._tasks = {};
+exports.default = Tasks;
+var tasks = {
+    // task: [ 'eval', 'JSON.parse(value).foo.bar' ]
+    // task: [ 'eval', 'value.foo.bar[0].message' ]
+    eval: function _eval(value, args) {
+        return eval(args[0]);
     },
 
     // task: [ 'match', '\\/(\\w+)-(\\d+)' ] => returns value or null
@@ -181,7 +178,7 @@ Tasks._tasks = {
         return args[0].replace(/\{.+\}/, value);
     },
 
-    // task: [ 'split',  '&foo=bar' ]
+    // task: [ 'split',  ', ' ]
     split: function split(value, args) {
         return value.split(args[0]);
     },
@@ -229,6 +226,8 @@ Tasks._tasks = {
     urldecode: function urldecode(value) {
         return decodeURIComponent(value);
     }
+
 };
-exports.default = Tasks;
+
+Tasks.inject(tasks);
 //# sourceMappingURL=tasks.js.map

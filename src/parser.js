@@ -1,27 +1,34 @@
 import cheerio from "cheerio";
-import log from './log';
+import { warn } from './bus';
 import Tasks from './tasks';
+
+const prefix = '[parser] ';
 
 export default class Parser {
 
-    static includeNull = true; // Keep values=null in dataset
+    includeNull = true; // keep properties with value null in dataset
+    _$; // cheerio
 
-    static get html() {
-        return this._html;
-    }
-
-    static set html(html) {
+    constructor(html) {
         this._html = html;
         this._$ = cheerio.load(html);
     }
 
-    static find(selector) {
-        let $ = this._$;
+    get html() {
+        return this._html;
+    }
+
+    has(selector) {
+        const $ = this._$;
         return !!$(selector).length
     }
 
-    static getLinks(link = [ { elem: 'a' } ], skip = []) {
-        let $ = this._$;
+    data(rules) {
+        return this._recParse(rules);
+    }
+
+    links(link = [ { elem: 'a' } ], skip = []) {
+        const $ = this._$;
         let links = [];
 
         // Handle link
@@ -73,16 +80,12 @@ export default class Parser {
         return links;
     }
 
-    static getData(rules) {
-        return this._recParse(rules);
-    }
-
     // Recursively parse DOM
-    static _recParse(rules, data, $container) {
+    _recParse(rules, data, $container) {
         if (!Array.isArray(rules)) {
             rules = [ rules ];
         }
-        let $ = this._$;
+        const $ = this._$;
         data = data || {};
         for (let i = 0; i < rules.length; i++) {
             const rule = rules[i];
@@ -119,7 +122,7 @@ export default class Parser {
                         }
                     }
                 } else if (!optional) {
-                    log.warn('[parser] Element not found: ' + rule.elem);
+                    warn(prefix + 'Element not found: ' + rule.elem);
                 }
             } else if (rule.elem) {
                 this._recParse(rule.kids, data, $(rule.elem, $container));
@@ -129,8 +132,8 @@ export default class Parser {
     }
 
     // Get values
-    static _getContent($elem, rule) {
-        let $ = this._$;
+    _getContent($elem, rule) {
+        const $ = this._$;
         let value, values = [];
         const dataType = Array.isArray(rule.data) ? rule.data[0] : rule.data;
         $elem.each(function() {
@@ -170,7 +173,7 @@ export default class Parser {
                         if (value) {
                             values.push(value);
                         } else if (value === undefined && rule.elem[1] !== 'optional') {
-                            log.warn('[parser] Attribute not found: ' + rule.data[i]);
+                            warn(prefix + 'Attribute not found: ' + rule.data[i]);
                         }
                     }
                     break;
@@ -182,7 +185,7 @@ export default class Parser {
                         if (value) {
                             values.push(value);
                         } else if (value === undefined && rule.elem[1] !== 'optional') {
-                            log.warn('[parser] Data attribute not found: ' + rule.data[i]);
+                            warn(prefix + 'Data attribute not found: ' + rule.data[i]);
                         }
                     }
                     break;

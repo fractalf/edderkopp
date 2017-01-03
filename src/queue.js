@@ -47,12 +47,10 @@ export default class Queue {
                     return this._stack.get.pop();
                 } else {
                     // Reached max depth
-                    // console.log('Max depth!');
                     return false;
                 }
             } else {
                 // Out of items
-                // console.log('Out of items!');
                 return false;
             }
         }

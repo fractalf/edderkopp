@@ -16,9 +16,7 @@ var _cheerio = require('cheerio');
 
 var _cheerio2 = _interopRequireDefault(_cheerio);
 
-var _log = require('./log');
-
-var _log2 = _interopRequireDefault(_log);
+var _bus = require('./bus');
 
 var _tasks = require('./tasks');
 
@@ -26,20 +24,34 @@ var _tasks2 = _interopRequireDefault(_tasks);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var Parser = function () {
-    function Parser() {
-        (0, _classCallCheck3.default)(this, Parser);
-    }
+var prefix = '[parser] ';
 
-    (0, _createClass3.default)(Parser, null, [{
-        key: 'find',
-        value: function find(selector) {
+var Parser = function () {
+    // cheerio
+
+    function Parser(html) {
+        (0, _classCallCheck3.default)(this, Parser);
+        this.includeNull = true;
+
+        this._html = html;
+        this._$ = _cheerio2.default.load(html);
+    } // keep properties with value null in dataset
+
+
+    (0, _createClass3.default)(Parser, [{
+        key: 'has',
+        value: function has(selector) {
             var $ = this._$;
             return !!$(selector).length;
         }
     }, {
-        key: 'getLinks',
-        value: function getLinks() {
+        key: 'data',
+        value: function data(rules) {
+            return this._recParse(rules);
+        }
+    }, {
+        key: 'links',
+        value: function links() {
             var link = arguments.length <= 0 || arguments[0] === undefined ? [{ elem: 'a' }] : arguments[0];
             var skip = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
 
@@ -97,11 +109,6 @@ var Parser = function () {
 
             return links;
         }
-    }, {
-        key: 'getData',
-        value: function getData(rules) {
-            return this._recParse(rules);
-        }
 
         // Recursively parse DOM
 
@@ -152,7 +159,7 @@ var Parser = function () {
                             }
                         }
                     } else if (!optional) {
-                        _log2.default.warn('[parser] Element not found: ' + rule.elem);
+                        (0, _bus.warn)(prefix + 'Element not found: ' + rule.elem);
                     }
                 } else if (rule.elem) {
                     _this._recParse(rule.kids, data, $(rule.elem, $container));
@@ -215,7 +222,7 @@ var Parser = function () {
                                 if (value) {
                                     values.push(value);
                                 } else if (value === undefined && rule.elem[1] !== 'optional') {
-                                    _log2.default.warn('[parser] Attribute not found: ' + rule.data[i]);
+                                    (0, _bus.warn)(prefix + 'Attribute not found: ' + rule.data[i]);
                                 }
                             }
                             break;
@@ -227,7 +234,7 @@ var Parser = function () {
                                 if (value) {
                                     values.push(value);
                                 } else if (value === undefined && rule.elem[1] !== 'optional') {
-                                    _log2.default.warn('[parser] Data attribute not found: ' + rule.data[_i]);
+                                    (0, _bus.warn)(prefix + 'Data attribute not found: ' + rule.data[_i]);
                                 }
                             }
                             break;
@@ -255,19 +262,12 @@ var Parser = function () {
         }
     }, {
         key: 'html',
-        // Keep values=null in dataset
-
         get: function get() {
             return this._html;
-        },
-        set: function set(html) {
-            this._html = html;
-            this._$ = _cheerio2.default.load(html);
         }
     }]);
     return Parser;
 }();
 
-Parser.includeNull = true;
 exports.default = Parser;
 //# sourceMappingURL=parser.js.map
