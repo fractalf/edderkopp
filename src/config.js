@@ -91,10 +91,7 @@ class Config {
 
     // Open and parse file
     _parse(file) {
-        var match = file.match(/.*\.([^.]*)$/);
-        if (match[1] == 'json') {
-            return JSON.parse(fs.readFileSync(file).toString());
-        } else if (match[1] == 'js') {
+        if (file.match(/\.js$/)) {
             return require(file);
         } else {
             return false;

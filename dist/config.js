@@ -232,10 +232,7 @@ var Config = function () {
     }, {
         key: '_parse',
         value: function _parse(file) {
-            var match = file.match(/.*\.([^.]*)$/);
-            if (match[1] == 'json') {
-                return JSON.parse(_fs2.default.readFileSync(file).toString());
-            } else if (match[1] == 'js') {
+            if (file.match(/\.js$/)) {
                 return require(file);
             } else {
                 return false;
